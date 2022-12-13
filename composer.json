@@ -1,0 +1,29 @@
+{
+  "name": "ilmlv/proxy-scraper",
+  "license": "MIT",
+  "type": "library",
+  "description": "Library for scraping free proxy lists and validating proxy capabilities",
+  "require": {
+    "php": "^8.0",
+    "ext-json": "*",
+    "ext-dom": "*",
+    "ext-simplexml": "*",
+    "dragonmantank/cron-expression": "^3.3",
+    "symfony/http-client": "^6.1",
+    "symfony/dom-crawler": "^6.1",
+    "symfony/css-selector": "^6.2"
+  },
+  "require-dev": {
+    "symfony/var-dumper": "^6.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "IlmLV\\ProxyScraper\\": [
+        "src/"
+      ]
+    },
+    "files": [
+      "helpers.php"
+    ]
+  }
+}
