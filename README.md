@@ -8,7 +8,7 @@ Support for http/https/socks4/socks5 proxies.
 Please check out [all examples](https://github.com/IlmLV/proxy-scraper/tree/master/examples).
 
 ## Installation
-Recomended installation method is via compose:
+Recomended installation method is via composer:
 ```
 composer require ilmlv/proxy-scraper
 ```
