@@ -2,11 +2,18 @@
 
 This library is designed to scrape free proxy resources and also individually validate those capabilities.
 Support for http/https/socks4/socks5 proxies.
+
 ***WARNING!*** Keep in mind that free public proxies is HIGHLY not recommended for sensitive data transfer.
 
 Please check out [all examples](https://github.com/IlmLV/proxy-scraper/tree/master/examples).
 
-### Proxy scraper sources
+## Installation
+Recomended installation method is via composer:
+```
+composer require ilmlv/proxy-scraper
+```
+
+## Proxy scraper sources
 Currently implemented proxy sources:
 - [blogspotproxy.blogspot.com](https://blogspotproxy.blogspot.com/)
 - [checkerproxy.net](https://checkerproxy.net)
@@ -39,9 +46,8 @@ Currently supported source data types:
 - [Table list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TableListScraper.php)
 - [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TextListScrapper.php)
 
-### Proxy validator
-This library can also be used for proxy capability validation.
-Validates:
+## Proxy validator
+This library can also be used for proxy capability validation:
 - ***anonymity level***: 
   - elite (no origin IP exposure and no proxy relates headers), 
   - anonymous (has proxy related headers), 
@@ -53,7 +59,7 @@ Validates:
 - multiple public ***domains*** (amazon.com, craigslist.org, example.com, google.com, ss.com)
 - average ***latency*** calculation
 
-#### Validator example
+### Validator example
 ```php
 $validator = new IlmLV\ProxyScraper\Validators\ProxyValidator('http://1.1.1.1:80');
 dump($validator->validate());
@@ -226,7 +232,7 @@ Result:
 
 ```
 
-### TODO:
+## TODO:
 - Add capability to add custom domain validators
 - Reduce dependencies
 - Test and improve support for wider range of PHP versions
