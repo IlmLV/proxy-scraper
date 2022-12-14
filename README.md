@@ -68,57 +68,53 @@ Result:
     "countryIsoCode": "NL",
     "organisation": "NForce Entertainment B.V."
   },
-  "https": {
-    "valid": true,
+  "http": {
     "latency": 0.54314708709717,
-    "headers": {
-      "A-IM": true,
-      "Accept": true,
-      "Accept-Charset": true,
-      "Accept-Encoding": true,
-      "Accept-Language": true,
-      "Accept-Datetime": true,
-      "Access-Control-Request-Method": true,
-      "Access-Control-Request-Headers": true,
-      "Authorization": true,
-      "Cache-Control": true,
-      "Connection": true,
-      "Cookie": true,
-      "Date": true,
-      "Expect": true,
-      "Forwarded": true,
-      "From": true,
-      "If-Modified-Since": true,
-      "If-None-Match": true,
-      "If-Range": true,
-      "Max-Forwards": true,
-      "Origin": true,
-      "Pragma": true,
-      "Range": true,
-      "Referer": true,
-      "TE": true,
-      "User-Agent": true,
-      "Upgrade": true,
-      "Via": true,
-      "Warning": true,
-      "DNT": true,
-      "X-Requested-With": true,
-      "X-CSRF-Token": true,
-      "X-Real-Ip": true,
-      "X-Proxy-Id": true,
-      "X-Forwarded": true,
-      "X-Forwarded-For": true,
-      "Forwarded-For": true,
-      "Forwarded-For-Ip": true,
-      "Client-Ip": true,
-      "X-Client-Ip": true
-    }
-  },
-  "methods": {
     "get": {
       "valid": true,
       "latency": 0.19053816795349,
-      "headers": [...]
+      "headers": {
+        "A-IM": true,
+        "Accept": true,
+        "Accept-Charset": true,
+        "Accept-Encoding": true,
+        "Accept-Language": true,
+        "Accept-Datetime": true,
+        "Access-Control-Request-Method": true,
+        "Access-Control-Request-Headers": true,
+        "Authorization": true,
+        "Cache-Control": true,
+        "Connection": true,
+        "Cookie": true,
+        "Date": true,
+        "Expect": true,
+        "Forwarded": true,
+        "From": true,
+        "If-Modified-Since": true,
+        "If-None-Match": true,
+        "If-Range": true,
+        "Max-Forwards": true,
+        "Origin": true,
+        "Pragma": true,
+        "Range": true,
+        "Referer": true,
+        "TE": true,
+        "User-Agent": true,
+        "Upgrade": true,
+        "Via": true,
+        "Warning": true,
+        "DNT": true,
+        "X-Requested-With": true,
+        "X-CSRF-Token": true,
+        "X-Real-Ip": true,
+        "X-Proxy-Id": true,
+        "X-Forwarded": true,
+        "X-Forwarded-For": true,
+        "Forwarded-For": true,
+        "Forwarded-For-Ip": true,
+        "Client-Ip": true,
+        "X-Client-Ip": true
+      }
     },
     "post": {
       "valid": false,
@@ -128,32 +124,75 @@ Result:
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
         "line": "56"
       },
+      "headers": {}
+    },
+    "put": {
+      "valid": true,
+      "latency": 2.1179740428925,
+      "headers": {...}
+    },
+    "options": {
+      "valid": true,
+      "latency": 1.0257298946381,
+      "headers": {...}
+    },
+    "head": {
+      "valid": true,
+      "latency": 1.9323780536652,
+      "headers": {...}
+    },
+    "delete": {
+      "valid": true,
+      "latency": 0.52144622802734,
+      "headers": {...}
+    },
+    "patch": {
+      "valid": true,
+      "latency": 0.42012906074524,
+      "headers": {...}
+    }
+  },
+  "https": {
+    "latency": 0.54314708709717,
+    "get": {
+      "valid": true,
+      "latency": 0.19053816795349,
+      "headers": {...}
+    },
+    "post": {
+      "valid": false,
+      "latency": null,
+      "error": {
+        "message": "Connection to proxy closed for \"https://whoami.serviss.it/?format=json\".",
+        "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
+        "line": "56"
+      },
       "headers": []
     },
     "put": {
       "valid": true,
       "latency": 2.1179740428925,
-      "headers": [...]
+      "headers": {...}
     },
     "options": {
       "valid": true,
       "latency": 1.0257298946381,
-      "headers": [...]
+      "headers": {...}
     },
     "head": {
       "valid": true,
       "latency": 1.9323780536652,
-      "headers": [...]
+      "headers": {...}
     },
     "delete": {
       "valid": true,
       "latency": 0.52144622802734,
-      "headers": [...]
+      "headers": {...}
     },
     "patch": {
       "valid": true,
       "latency": 0.42012906074524,
-      "headers": [...]
+      "headers": {...}
     }
   },
   "domains": {
@@ -177,10 +216,6 @@ Result:
       "valid": true,
       "latency": 0.44051098823547
     }
-  },
-  "latency": {
-    "http": 1.0346992413203,
-    "https": 0.54314708709717
   },
   "validatedAt": {
     "date": "2022-12-12 23:09:03.938495",
