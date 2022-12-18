@@ -1,13 +1,13 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators\Domains;
+namespace IlmLV\ProxyScraper\Validations\Domains;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Validators\RequestValidator;
+use IlmLV\ProxyScraper\Validations\AbstractRequestValidation;
 use Symfony\Component\DomCrawler\Crawler as Dom;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class AmazonCom extends RequestValidator
+class AmazonCom extends AbstractRequestValidation
 {
     const NAME = 'amazon.com';
     const METHOD = 'GET';

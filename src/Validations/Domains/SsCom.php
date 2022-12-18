@@ -1,17 +1,17 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators\Domains;
+namespace IlmLV\ProxyScraper\Validations\Domains;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Validators\RequestValidator;
+use IlmLV\ProxyScraper\Validations\AbstractRequestValidation;
 use Symfony\Component\DomCrawler\Crawler as Dom;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class GoogleCom extends RequestValidator
+class SsCom extends AbstractRequestValidation
 {
-    const NAME = 'google.com';
+    const NAME = 'ss.com';
     const METHOD = 'GET';
-    const URL = 'https://www.google.com/search?q=site%3Aserviss.it';
+    const URL = 'https://www.ss.com/en/';
 
     public function __construct(HttpClientInterface $client = null)
     {
@@ -27,9 +27,7 @@ class GoogleCom extends RequestValidator
             $title = $dom->filter('title');
 
             return $response->getStatusCode() === 200
-                && strpos($title->text(), 'Google Search') !== false
-                && strpos($title->text(), 'Sorry...') === false
-                && strpos($dom->text(), 'e=document.getElementById(\'captcha\');if(e){e.focus();}') === false;
+                && $title->text() === 'Advertisements - SS.COM';
         }
         catch (\Throwable $e) {
             $this->error = new ResponseError($e);

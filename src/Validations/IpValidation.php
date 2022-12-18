@@ -1,12 +1,12 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators;
+namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class IpValidator extends RequestValidator
+class IpValidation extends AbstractRequestValidation
 {
     const URL = 'http://ip.serviss.it/?format=json';
 

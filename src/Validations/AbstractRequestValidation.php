@@ -1,6 +1,6 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators;
+namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use IlmLV\ProxyScraper\Helper;
@@ -8,7 +8,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-abstract class RequestValidator
+abstract class AbstractRequestValidation
 {
     /**
      * @var HttpClientInterface

@@ -1,17 +1,17 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators\Domains;
+namespace IlmLV\ProxyScraper\Validations\Domains;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Validators\RequestValidator;
+use IlmLV\ProxyScraper\Validations\AbstractRequestValidation;
 use Symfony\Component\DomCrawler\Crawler as Dom;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class SsCom extends RequestValidator
+class CraigslistOrg extends AbstractRequestValidation
 {
-    const NAME = 'ss.com';
+    const NAME = 'craigslist.org';
     const METHOD = 'GET';
-    const URL = 'https://www.ss.com/en/';
+    const URL = 'https://craigslist.org/';
 
     public function __construct(HttpClientInterface $client = null)
     {
@@ -27,7 +27,7 @@ class SsCom extends RequestValidator
             $title = $dom->filter('title');
 
             return $response->getStatusCode() === 200
-                && $title->text() === 'Advertisements - SS.COM';
+                && strpos($title->text(), 'craigslist') === 0;
         }
         catch (\Throwable $e) {
             $this->error = new ResponseError($e);

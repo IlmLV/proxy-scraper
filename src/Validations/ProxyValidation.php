@@ -1,6 +1,6 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators;
+namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\Proxy;
@@ -10,7 +10,7 @@ use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class ProxyValidator
+class ProxyValidation
 {
     private Proxy $proxy;
     protected HttpClientInterface $client;
@@ -22,11 +22,11 @@ class ProxyValidator
     public ResponseError $error;
 
     public string $anonymityLevel;
-    public IpValidator $ip;
+    public IpValidation $ip;
 
-    public MethodsValidator $http;
-    public MethodsValidator $https;
-    public DomainsValidator $domains;
+    public MethodsValidation $http;
+    public MethodsValidation $https;
+    public DomainsValidation $domains;
 
     public \DateTimeInterface $validatedAt;
 
@@ -47,24 +47,24 @@ class ProxyValidator
             ],
             'proxy' => $this->proxy
         ]);
+
+        $this->validate();
     }
 
-    public function validate(): self
+    private function validate(): void
     {
         try {
             $this->validatedAt = new \DateTime();
-            $this->anonymityLevel = new AnonymityLevelValidator($this->realIp(), $this->client);
-            $this->ip = new IpValidator($this->proxy->host, $this->client);
-            $this->http = new MethodsValidator($this->httpUrl, $this->client);
-            $this->https = new MethodsValidator($this->httpsUrl, $this->client);
-            $this->domains = new DomainsValidator($this->client);
+            $this->anonymityLevel = new AnonymityLevelValidation($this->realIp(), $this->client);
+            $this->ip = new IpValidation($this->proxy->host, $this->client);
+            $this->http = new MethodsValidation($this->httpUrl, $this->client);
+            $this->https = new MethodsValidation($this->httpsUrl, $this->client);
+            $this->domains = new DomainsValidation($this->client);
         }
         catch (\Throwable $e) {
             $this->valid = false;
             $this->error = new ResponseError($e);
         }
-
-        return $this;
     }
 
     private function realIp(): Host

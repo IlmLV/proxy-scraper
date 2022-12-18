@@ -1,6 +1,6 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators;
+namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\ResponseError;
@@ -8,7 +8,7 @@ use IlmLV\ProxyScraper\Exceptions\ValidatorException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class AnonymityLevelValidator
+class AnonymityLevelValidation
 {
     const URL = 'http://whoami.serviss.it/?format=json';
 

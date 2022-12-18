@@ -1,10 +1,10 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators;
+namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
 
-class HeadersValidator extends RequestValidator
+class HeadersValidation extends AbstractRequestValidation
 {
     private array $headerValues = [
         'common' => [

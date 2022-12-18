@@ -46,7 +46,7 @@ Currently supported source data types:
 - [Table list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TableListScraper.php)
 - [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TextListScrapper.php)
 
-## Proxy validator
+## Proxy validation
 This library can also be used for proxy capability validation:
 - ***anonymity level***: 
   - elite (no origin IP exposure and no proxy relates headers), 
@@ -59,10 +59,11 @@ This library can also be used for proxy capability validation:
 - multiple public ***domains*** (amazon.com, craigslist.org, example.com, google.com, ss.com)
 - average ***latency*** calculation
 
-### Validator example
+### Validation example
+
 ```php
-$validator = new IlmLV\ProxyScraper\Validators\ProxyValidator('http://1.1.1.1:80');
-dump($validator->validate());
+$validation = new IlmLV\ProxyScraper\Validations\ProxyValidation('http://1.1.1.1:80');
+dump($validation);
 ```
 Result:
 ```json
@@ -233,7 +234,7 @@ Result:
 ```
 
 ## TODO:
-- Add capability to add custom domain validators
+- Add capability to add custom domain validations
 - Reduce dependencies
 - Test and improve support for wider range of PHP versions
 - Improve documentation

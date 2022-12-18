@@ -1,13 +1,13 @@
 <?php
 
-namespace IlmLV\ProxyScraper\Validators\Domains;
+namespace IlmLV\ProxyScraper\Validations\Domains;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Validators\RequestValidator;
+use IlmLV\ProxyScraper\Validations\AbstractRequestValidation;
 use Symfony\Component\DomCrawler\Crawler as Dom;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class ExampleCom extends RequestValidator
+class ExampleCom extends AbstractRequestValidation
 {
     const NAME = 'example.com';
     const METHOD = 'GET';
