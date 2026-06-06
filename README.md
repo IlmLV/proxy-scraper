@@ -5,12 +5,126 @@ Support for http/https/socks4/socks5 proxies.
 
 ***WARNING!*** Keep in mind that free public proxies is HIGHLY not recommended for sensitive data transfer.
 
-Please check out [all examples](https://github.com/IlmLV/proxy-scraper/tree/master/examples).
+See the [usage examples](#usage) below.
 
 ## Installation
 Recomended installation method is via composer:
 ```
 composer require ilmlv/proxy-scraper
+```
+
+## Usage
+
+The snippets below assume Composer's autoloader is already loaded
+(`require __DIR__ . '/vendor/autoload.php';`). `dump()` comes from
+`symfony/var-dumper` — swap it for `print_r()`/`var_dump()` if you prefer.
+
+### Scrape all sources
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->all();
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+
+dump($proxies->stats());
+```
+
+### Scrape a single source
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
+
+$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
+### Scrape only sources that are due
+
+Each source declares a cron `SCHEDULE`; `scheduled()` runs just the ones due
+right now — handy for a frequently-polling cron job that should not hammer every
+provider on every tick.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->scheduled();
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
+### Inspect per-source statistics
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->all();
+
+foreach ($proxies->stats() as $source => $results) {
+    echo $source . ' => ' . json_encode($results) . PHP_EOL;
+}
+```
+
+### Configure a source
+
+Extra config keys are appended to the source URL as query parameters, so you can
+tune sources that accept them (e.g. pubproxy.com). You can also supply your own
+Symfony HTTP client.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\PubProxyCom;
+use Symfony\Component\HttpClient\HttpClient;
+
+$scraperConfig = [
+    PubProxyCom::class => [
+        // 'api'  => 'xxx',
+        'country' => 'US',
+        'https'   => true,
+        'level'   => 'elite',
+    ],
+];
+
+$httpClient = HttpClient::create(['timeout' => 30]);
+
+$proxies = LoadProxies::init($scraperConfig, $httpClient)
+    ->only(PubProxyCom::class);
+
+dump($proxies->stats());
+```
+
+### Handle scraper errors
+
+A source that fails (network error, bad response, misconfiguration) does not
+throw — the exception is captured and exposed via `errors()`, keyed by the source
+class.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\PubProxyCom;
+
+$scraperConfig = [
+    PubProxyCom::class => [
+        'api'            => 'wrong_key',
+        'level'          => 'wrong_level',
+        'wrongParameter' => 'wrong_value',
+    ],
+];
+
+$proxies = LoadProxies::init($scraperConfig)->only(PubProxyCom::class);
+
+foreach ($proxies->errors() as $scraper => $exception) {
+    echo $scraper . ' => ' . $exception->getMessage() . PHP_EOL;
+}
 ```
 
 ## Proxy scraper sources
@@ -47,6 +161,28 @@ Currently supported source data types:
 - [Table list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TableListScraper.php)
 - [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TextListScrapper.php)
 
+### Define a custom source
+
+Extend one of the scraper base types, point `$url` at the resource, and hand the
+class to `only()`/`add()` — there is no need to register it in `LoadProxies`:
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\JsonScrapper;
+
+class CustomGimmeProxy extends JsonScrapper implements ScraperInterface
+{
+    protected string $url = 'https://gimmeproxy.com/api/getProxy';
+}
+
+$proxies = LoadProxies::init()->only(CustomGimmeProxy::class);
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
 ## Proxy validation
 This library can also be used for proxy capability validation:
 - ***anonymity level***: 
@@ -60,13 +196,38 @@ This library can also be used for proxy capability validation:
 - multiple public ***domains*** (amazon.com, craigslist.org, example.com, google.com, ss.com)
 - average ***latency*** calculation
 
-### Validation example
+### Validate a proxy
+
+`ProxyValidation` accepts either a proxy string or a `Proxy` entity:
 
 ```php
-$validation = new IlmLV\ProxyScraper\Validations\ProxyValidation('http://1.1.1.1:80');
+use IlmLV\ProxyScraper\Validations\ProxyValidation;
+
+$validation = new ProxyValidation('http://1.1.1.1:80');
+
 dump($validation);
 ```
-Result:
+
+### Scrape and validate
+
+Validate every proxy a source returns:
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
+use IlmLV\ProxyScraper\Validations\ProxyValidation;
+
+$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+
+foreach ($proxies->get() as $proxy) {
+    $validation = new ProxyValidation($proxy);
+
+    dump(json_decode(json_encode($validation)));
+}
+```
+
+The validation result looks like:
+
 ```json
 {
   "valid": true,
