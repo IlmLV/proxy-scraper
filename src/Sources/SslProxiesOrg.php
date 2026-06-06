@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\ScraperInterface;

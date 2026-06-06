@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
@@ -50,7 +52,7 @@ abstract class AbstractRequestValidation
      * @param string $url
      * @param HttpClientInterface|null $client
      */
-    public function __construct(string $method, string $url, HttpClientInterface $client = null)
+    public function __construct(string $method, string $url, ?HttpClientInterface $client = null)
     {
         $this->client = $client ?? HttpClient::create();
         $this->method = $method;
@@ -59,9 +61,16 @@ abstract class AbstractRequestValidation
     }
 
     /**
+     * Run the validation for this request and report whether the proxy passed.
+     *
+     * @return bool
+     */
+    abstract public function validate(): bool;
+
+    /**
      * @param string $method
      * @param string $url
-     * @param array $options
+     * @param array<string, mixed> $options
      * @return ResponseInterface
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */

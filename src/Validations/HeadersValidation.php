@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
 
 class HeadersValidation extends AbstractRequestValidation
 {
+    /**
+     * @var array<string, array<string, string>>
+     */
     private array $headerValues = [
         'common' => [
             'A-IM' => 'feed',
@@ -61,6 +66,9 @@ class HeadersValidation extends AbstractRequestValidation
         'DELETE' => [],
         'PATCH' => [],
     ];
+    /**
+     * @var array<string, bool>
+     */
     public array $headers = [];
 
     /**
@@ -81,6 +89,11 @@ class HeadersValidation extends AbstractRequestValidation
                 return $response->getStatusCode() === 200 && $body === '';
             } else {
                 $responseAttr = json_decode($response->getContent(), true);
+
+                if (!is_array($responseAttr)) {
+                    return false;
+                }
+
                 foreach($requestHeaders as $key => $value) {
                     $responseKey = kebabToSnake(strtolower($key));
                     $this->headers[$key] = isset($responseAttr[$responseKey]) ? ($responseAttr[$responseKey] === $value ? true : false) : false;

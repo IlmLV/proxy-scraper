@@ -1,13 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper;
 
 class Helper
 {
     /**
+     * @template T
      * @param float|null $latency
-     * @param callable $request
-     * @return mixed
+     * @param callable(): T $request
+     * @return T
      */
     public static function benchmark(float|null &$latency, callable $request): mixed
     {

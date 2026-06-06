@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Scrapers;
 
 use Generator;
+use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
@@ -18,7 +21,7 @@ abstract class TableListScraper extends ProxyScraper implements ScraperInterface
     protected int $colProtocol = 2;
 
     /**
-     * @return Generator
+     * @return Generator<int, Proxy>
      * @throws ScraperException
      */
     public function get(): Generator
@@ -26,7 +29,7 @@ abstract class TableListScraper extends ProxyScraper implements ScraperInterface
         try {
             $html = $this->httpClient->request('GET', $this->url)->getContent();
             $rows = (new Dom($html))->filter($this->rowPath);
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 

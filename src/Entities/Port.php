@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Entities;
 
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
@@ -15,11 +17,17 @@ final class Port
     private int $port;
 
     /**
-     * @param int $port
+     * @param int|string $port Accepts a numeric string (as produced by proxy-string
+     *                         parsing and most scraped sources) or an integer.
      * @throws InvalidArgumentException
      */
-    public function __construct(int $port)
+    public function __construct(int|string $port)
     {
+        if (is_string($port) && !ctype_digit($port)) {
+            throw new InvalidArgumentException('Bad port number: ' . $port);
+        }
+        $port = (int) $port;
+
         if (self::MIN_PORT_NUMBER > $port) {
             throw new InvalidArgumentException('Bad port number: ' . $port);
         }

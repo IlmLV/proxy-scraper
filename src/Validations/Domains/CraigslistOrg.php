@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations\Domains;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
@@ -13,9 +15,9 @@ class CraigslistOrg extends AbstractRequestValidation
     const METHOD = 'GET';
     const URL = 'https://craigslist.org/';
 
-    public function __construct(HttpClientInterface $client = null)
+    public function __construct(?HttpClientInterface $client = null)
     {
-        return parent::__construct(self::METHOD, self::URL, $client);
+        parent::__construct(self::METHOD, self::URL, $client);
     }
 
     public function validate(): bool

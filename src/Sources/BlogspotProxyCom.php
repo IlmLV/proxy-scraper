@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Sources;
 
 use Generator;
@@ -33,7 +35,7 @@ final class BlogspotProxyCom extends ProxyScraper implements ScraperInterface
 
             $dom = simplexml_load_string($html);
 
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 

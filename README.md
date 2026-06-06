@@ -1,16 +1,159 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Proxy Scraper" width="560">
+</p>
+
+<p align="center">
+  <a href="https://github.com/IlmLV/proxy-scraper/actions/workflows/ci.yml"><img src="https://github.com/IlmLV/proxy-scraper/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://packagist.org/packages/ilmlv/proxy-scraper"><img src="https://img.shields.io/packagist/v/ilmlv/proxy-scraper.svg" alt="Latest version"></a>
+  <a href="https://packagist.org/packages/ilmlv/proxy-scraper/stats"><img src="https://img.shields.io/packagist/dt/ilmlv/proxy-scraper.svg" alt="Total downloads"></a>
+  <a href="https://packagist.org/packages/ilmlv/proxy-scraper"><img src="https://img.shields.io/packagist/dependency-v/ilmlv/proxy-scraper/php.svg" alt="PHP version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/packagist/l/ilmlv/proxy-scraper.svg" alt="License"></a>
+</p>
+
 # Proxy Scraper and Validator
 
-This library is designed to scrape free proxy resources and also individually validate those capabilities.
-Support for http/https/socks4/socks5 proxies.
+Scrape free proxy lists from 20+ sources and individually validate proxy capabilities —
+anonymity level, latency, HTTP(S) method support and more. Supports **http / https /
+socks4 / socks5** proxies.
 
-***WARNING!*** Keep in mind that free public proxies is HIGHLY not recommended for sensitive data transfer.
+> [!WARNING]
+> Free public proxies are **highly** not recommended for sensitive data transfer.
 
-Please check out [all examples](https://github.com/IlmLV/proxy-scraper/tree/master/examples).
+## Why this library
+
+- **Batteries included** — 20+ real free-proxy sources work out of the box; add your own in a few lines.
+- **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
+- **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
+- **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
+- **Modern & type-safe** — PHP 8.1+, `declare(strict_types=1)`, PSR-4, and a fully mockable Symfony HTTP client.
+
+## Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Proxy scraper sources](#proxy-scraper-sources)
+- [Proxy validation](#proxy-validation)
+- [Testing](#testing)
+- [Contributing](#contributing)
 
 ## Installation
-Recomended installation method is via composer:
+Recommended installation method is via composer:
 ```
 composer require ilmlv/proxy-scraper
+```
+
+## Usage
+
+The snippets below assume Composer's autoloader is already loaded
+(`require __DIR__ . '/vendor/autoload.php';`). `dump()` comes from
+`symfony/var-dumper` — swap it for `print_r()`/`var_dump()` if you prefer.
+
+### Scrape all sources
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->all();
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+
+dump($proxies->stats());
+```
+
+### Scrape a single source
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
+
+$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
+### Scrape only sources that are due
+
+Each source declares a cron `SCHEDULE`; `scheduled()` runs just the ones due
+right now — handy for a frequently-polling cron job that should not hammer every
+provider on every tick.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->scheduled();
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
+### Inspect per-source statistics
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->all();
+
+foreach ($proxies->stats() as $source => $results) {
+    echo $source . ' => ' . json_encode($results) . PHP_EOL;
+}
+```
+
+### Configure a source
+
+Extra config keys are appended to the source URL as query parameters, so you can
+tune sources that accept them (e.g. pubproxy.com). You can also supply your own
+Symfony HTTP client.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\PubProxyCom;
+use Symfony\Component\HttpClient\HttpClient;
+
+$scraperConfig = [
+    PubProxyCom::class => [
+        // 'api'  => 'xxx',
+        'country' => 'US',
+        'https'   => true,
+        'level'   => 'elite',
+    ],
+];
+
+$httpClient = HttpClient::create(['timeout' => 30]);
+
+$proxies = LoadProxies::init($scraperConfig, $httpClient)
+    ->only(PubProxyCom::class);
+
+dump($proxies->stats());
+```
+
+### Handle scraper errors
+
+A source that fails (network error, bad response, misconfiguration) does not
+throw — the exception is captured and exposed via `errors()`, keyed by the source
+class.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\PubProxyCom;
+
+$scraperConfig = [
+    PubProxyCom::class => [
+        'api'            => 'wrong_key',
+        'level'          => 'wrong_level',
+        'wrongParameter' => 'wrong_value',
+    ],
+];
+
+$proxies = LoadProxies::init($scraperConfig)->only(PubProxyCom::class);
+
+foreach ($proxies->errors() as $scraper => $exception) {
+    echo $scraper . ' => ' . $exception->getMessage() . PHP_EOL;
+}
 ```
 
 ## Proxy scraper sources
@@ -21,10 +164,10 @@ Currently implemented proxy sources:
 - [free-proxy-list.net](https://www.free-proxy-list.net)
 - [free-proxy-list.net/anonymous-proxy.html](https://free-proxy-list.net/anonymous-proxy.html)
 - [free-proxy-list.net/uk-proxy.html](https://free-proxy-list.net/uk-proxy.html)
-- [gimmeproxy.com](https://gimmeproxy.com)
-- [multiproxy.org](https://multiproxy.org)
-- [proxyserverlist24.top](http://www.proxyserverlist24.top)
+- [monosans/proxy-list](https://github.com/monosans/proxy-list) (http)
+- [proxyscrape.com](https://proxyscrape.com/free-proxy-list) (http/socks4/socks5)
 - [pubproxy.com](http://pubproxy.com/)
+- [roosterkid/openproxylist](https://github.com/roosterkid/openproxylist) (https/socks4/socks5)
 - [ShiftyTR/Proxy-List](https://github.com/ShiftyTR/Proxy-List)
 - [ShiftyTR/Proxy-List/https.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/https.txt)
 - [ShiftyTR/Proxy-List/socks4.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/socks4.txt)
@@ -35,16 +178,39 @@ Currently implemented proxy sources:
 - [TheSpeedX/PROXY-List/socks4.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks4.txt)
 - [TheSpeedX/PROXY-List/socks5.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks5.txt)
 - [us-proxy.org](https://www.us-proxy.org)
+- [vakhov/fresh-proxy-list](https://github.com/vakhov/fresh-proxy-list) (http/https/socks4/socks5)
 
 Feel free to request more sources.
 
 ### Proxy scrapers
 Keep in mind that there is prepared multiple types of scraping libraries that can be used to simplify creation of your own source scrapers.
 Currently supported source data types:
-- [JSON list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/JsonListScrapper.php)
-- [JSON object scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/JsonScrapper.php)
-- [Table list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TableListScraper.php)
-- [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TextListScrapper.php)
+- [JSON list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/JsonListScraper.php)
+- [JSON object scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/JsonScraper.php)
+- [Table list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TableListScraper.php)
+- [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TextListScraper.php)
+
+### Define a custom source
+
+Extend one of the scraper base types, point `$url` at the resource, and hand the
+class to `only()`/`add()` — there is no need to register it in `LoadProxies`:
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\JsonScraper;
+
+class CustomGimmeProxy extends JsonScraper implements ScraperInterface
+{
+    protected string $url = 'https://gimmeproxy.com/api/getProxy';
+}
+
+$proxies = LoadProxies::init()->only(CustomGimmeProxy::class);
+
+foreach ($proxies->get() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
 
 ## Proxy validation
 This library can also be used for proxy capability validation:
@@ -59,13 +225,38 @@ This library can also be used for proxy capability validation:
 - multiple public ***domains*** (amazon.com, craigslist.org, example.com, google.com, ss.com)
 - average ***latency*** calculation
 
-### Validation example
+### Validate a proxy
+
+`ProxyValidation` accepts either a proxy string or a `Proxy` entity:
 
 ```php
-$validation = new IlmLV\ProxyScraper\Validations\ProxyValidation('http://1.1.1.1:80');
+use IlmLV\ProxyScraper\Validations\ProxyValidation;
+
+$validation = new ProxyValidation('http://1.1.1.1:80');
+
 dump($validation);
 ```
-Result:
+
+### Scrape and validate
+
+Validate every proxy a source returns:
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
+use IlmLV\ProxyScraper\Validations\ProxyValidation;
+
+$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+
+foreach ($proxies->get() as $proxy) {
+    $validation = new ProxyValidation($proxy);
+
+    dump(json_decode(json_encode($validation)));
+}
+```
+
+The validation result looks like:
+
 ```json
 {
   "valid": true,
@@ -233,13 +424,37 @@ Result:
 
 ```
 
+## Testing
+The library ships with a PHPUnit test suite split into two suites:
+
+- **unit** — fully offline and deterministic. Every HTTP call is mocked with
+  Symfony's `MockHttpClient`, so the entities, scraper base classes, all proxy
+  sources and the validation subsystem are tested without touching the network.
+- **live** — hits the real provider endpoints and asserts each source is still
+  reachable and returns proxies. It doubles as a dead-provider monitor and is
+  kept out of the gating pipeline.
+
+```bash
+composer install
+
+composer test            # unit suite (offline)
+composer test:coverage   # unit suite + text coverage report (needs pcov or xdebug)
+composer test:live       # live suite (requires network)
+composer analyse         # PHPStan static analysis (level 10, offline)
+```
+
+Continuous integration runs on GitHub Actions (see `.github/workflows/ci.yml`): the
+unit suite runs across PHP 8.1–8.5 with code-coverage reporting, PHPStan static
+analysis runs as a separate gating job, and the live suite runs as a separate,
+non-blocking job on a weekly schedule (and on demand) so dead or drifting providers
+are caught early.
+
 ## TODO:
 - Add capability to add custom domain validations
 - Reduce dependencies
-- Test and improve support for wider range of PHP versions
 - Improve documentation
 - Tighten argument strict conditions
 - Add more proxy sources
-- Create functional tests
-- Monitor test coverage
-- Expand php compatibility
+- ~~Create functional tests~~ ✅
+- ~~Monitor test coverage~~ ✅
+- Expand PHP compatibility (CI now covers PHP 8.1–8.5)

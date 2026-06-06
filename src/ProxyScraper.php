@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper;
 
 use IlmLV\ProxyScraper\Entities\Host;
@@ -12,8 +14,12 @@ class ProxyScraper
 {
     protected string $url;
 
+    /**
+     * @var array<string, mixed>
+     */
     protected array $options;
 
+    /** @var string */
     const SCHEDULE = '* * * * *';
 
     /**
@@ -21,6 +27,9 @@ class ProxyScraper
      */
     protected HttpClientInterface $httpClient;
 
+    /**
+     * @param array<string, mixed> $options
+     */
     public function __construct(HttpClientInterface $httpClient, array $options = [])
     {
         $this->httpClient = $httpClient;
@@ -28,12 +37,15 @@ class ProxyScraper
         $this->loadOptions($options);
     }
 
-    private function loadOptions(&$options = []): void
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function loadOptions(array &$options = []): void
     {
         foreach ($options as $key => $value) {
             $methodName = snakeToCamel('set_'. $key);
             if (method_exists($this, $methodName)) {
-                call_user_func(array($this, $methodName), $value);
+                $this->{$methodName}($value);
 
                 unset($options[$key]);
             }
@@ -42,6 +54,10 @@ class ProxyScraper
         $this->options = $this->processOptions($options);
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     private function processOptions(array $options): array
     {
         // cast all booleans as string
@@ -58,17 +74,23 @@ class ProxyScraper
      */
     protected function getUrl(string ...$values): string
     {
-        return sprintf($this->url . ($this->options ? '?' . http_build_query($this->options) : ''), ...$values);
+        $url = $values === [] ? $this->url : sprintf($this->url, ...$values);
+
+        if ($this->options) {
+            $url .= '?' . http_build_query($this->options);
+        }
+
+        return $url;
     }
 
     /**
-     * @param $ip
-     * @param $port
-     * @param $protocol
+     * @param string $ip
+     * @param int|string $port
+     * @param string $protocol
      * @return Proxy
      * @throws Exceptions\InvalidArgumentException
      */
-    protected function makeProxy($ip, $port, $protocol): Proxy
+    protected function makeProxy(string $ip, int|string $port, string $protocol): Proxy
     {
         return new Proxy(new Protocol($protocol), new Host($ip), new Port($port));
     }

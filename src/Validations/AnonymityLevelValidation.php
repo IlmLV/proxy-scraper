@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
@@ -36,7 +38,7 @@ class AnonymityLevelValidation
      * @param Host $hostIp
      * @param HttpClientInterface|null $client
      */
-    public function __construct(Host $hostIp, HttpClientInterface $client = null)
+    public function __construct(Host $hostIp, ?HttpClientInterface $client = null)
     {
         $this->hostIp = $hostIp;
         $this->client = $client ?? HttpClient::create();
@@ -51,7 +53,7 @@ class AnonymityLevelValidation
     public function __toString(): string
     {
         if (!$this->anonymityLevel)
-            throw new ValidatorException($this->error);
+            throw new ValidatorException((string) $this->error);
 
         return $this->anonymityLevel;
     }
@@ -65,7 +67,7 @@ class AnonymityLevelValidation
             $response = $this->client->request('GET', self::URL);
             $body = json_decode($response->getContent(), true);
 
-            if (!$body) {
+            if (!is_array($body) || $body === []) {
                 if (
                     strpos($response->getContent(), 'Please wait') !== false
                     || strpos($response->getContent(), 'verified') !== false
@@ -101,7 +103,7 @@ class AnonymityLevelValidation
                             return true;
                         }
                         foreach ($proxyHeaderPrefixes as $prefix) {
-                            if (strpos($attr, $prefix) !== false) {
+                            if (strpos((string)$attr, $prefix) !== false) {
                                 return true;
                             }
                         }

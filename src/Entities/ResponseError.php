@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Entities;
 
 use Throwable;
@@ -17,7 +19,7 @@ final class ResponseError
     {
         $this->message = $e->getMessage();
         $this->file = $e->getFile();
-        $this->line = $e->getLine();
+        $this->line = (string) $e->getLine();
     }
 
     /**

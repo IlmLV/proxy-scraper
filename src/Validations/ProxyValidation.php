@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
@@ -19,21 +21,21 @@ class ProxyValidation
     private string $httpsUrl = 'https://whoami.serviss.it/?format=json';
 
     public bool $valid = true;
-    public ResponseError $error;
+    public ?ResponseError $error = null;
 
-    public string $anonymityLevel;
-    public IpValidation $ip;
+    public ?string $anonymityLevel = null;
+    public ?IpValidation $ip = null;
 
-    public MethodsValidation $http;
-    public MethodsValidation $https;
-    public DomainsValidation $domains;
+    public ?MethodsValidation $http = null;
+    public ?MethodsValidation $https = null;
+    public ?DomainsValidation $domains = null;
 
     public \DateTimeInterface $validatedAt;
 
     /**
      * @throws InvalidArgumentException
      */
-    public function __construct(Proxy|string $proxy, HttpClientInterface $client = null)
+    public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null)
     {
         $this->proxy = is_string($proxy) ? new Proxy($proxy) : $proxy;
 
@@ -55,7 +57,7 @@ class ProxyValidation
     {
         try {
             $this->validatedAt = new \DateTime();
-            $this->anonymityLevel = new AnonymityLevelValidation($this->realIp(), $this->client);
+            $this->anonymityLevel = (string) new AnonymityLevelValidation($this->realIp(), $this->client);
             $this->ip = new IpValidation($this->proxy->host, $this->client);
             $this->http = new MethodsValidation($this->httpUrl, $this->client);
             $this->https = new MethodsValidation($this->httpsUrl, $this->client);
@@ -73,6 +75,13 @@ class ProxyValidation
             'proxy' => false
         ]);
 
-        return new Host(json_decode($response->getContent())->ip);
+        $body = json_decode($response->getContent(), true);
+        $ip = is_array($body) ? ($body['ip'] ?? null) : null;
+
+        if (!is_string($ip)) {
+            throw new InvalidArgumentException('Failed to resolve real IP from response');
+        }
+
+        return new Host($ip);
     }
 }

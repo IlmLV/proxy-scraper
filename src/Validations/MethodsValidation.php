@@ -1,11 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class MethodsValidation
 {
+    /**
+     * @var string[]
+     */
     private array $requestMethods = [
         'GET',
         'POST',
@@ -25,7 +30,10 @@ class MethodsValidation
     public HeadersValidation $delete;
     public HeadersValidation $patch;
 
-    public function __construct(string $url, HttpClientInterface $client = null, array $requestMethods = null)
+    /**
+     * @param string[]|null $requestMethods
+     */
+    public function __construct(string $url, ?HttpClientInterface $client = null, ?array $requestMethods = null)
     {
         if ($requestMethods)
             $this->requestMethods = $requestMethods;

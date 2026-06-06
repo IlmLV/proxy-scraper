@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Entities;
 
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
