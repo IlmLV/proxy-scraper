@@ -11,15 +11,14 @@ use IlmLV\ProxyScraper\ScraperInterface;
 
 final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
 {
-    protected string $url = 'https://checkerproxy.net/api/archive/%s';
+    protected string $url = 'https://api.checkerproxy.net/v1/landing/archive';
     const SCHEDULE = '0 0 * * *';
 
-    const TYPE_PROTOCOL_MAPPING = [
-        1 => 'http',
-        2 => 'https',
-        3 => 'socks4',
-        4 => 'socks5'
-    ];
+    /**
+     * The archive API no longer exposes a proxy type/protocol, just an
+     * "ip:port" list, so we fall back to this protocol for every entry.
+     */
+    protected string $protocol = 'http';
 
     /**
      * @return Generator
@@ -28,37 +27,50 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
+        $date = $this->latestArchiveDate();
+
         try {
-            $response = $this->httpClient->request('GET', $this->getUrl(date('Y-m-d')))->getContent();
+            $response = $this->httpClient->request('GET', $this->url . '/' . $date)->getContent();
         } catch (\Exception|\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 
         $json = json_decode($response);
 
-        foreach ($json as $item) {
-            yield $this->extractProxy($item);
+        if (!isset($json->data->proxyList) || !is_array($json->data->proxyList)) {
+            throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');
+        }
+
+        foreach ($json->data->proxyList as $address) {
+            try {
+                yield new Proxy($this->protocol . '://' . $address);
+            } catch (InvalidArgumentException $e) {
+                continue;
+            }
         }
     }
 
     /**
-     * @param object $json
-     * @return Proxy
-     * @throws InvalidArgumentException
+     * The archive is published with a few days of delay, so we resolve the most
+     * recent available date from the archive index before fetching its proxies.
+     *
+     * @return string
      * @throws ScraperException
      */
-    private function extractProxy(object $json): Proxy
+    private function latestArchiveDate(): string
     {
-        if (property_exists($json, 'addr')
-            && property_exists($json, 'type')
-            && array_key_exists($json->type, self::TYPE_PROTOCOL_MAPPING)
-        ) {
-            return new Proxy(
-                self::TYPE_PROTOCOL_MAPPING[$json->type] . '://' .  $json->addr
-            );
+        try {
+            $response = $this->httpClient->request('GET', $this->url)->getContent();
+        } catch (\Exception|\Throwable $e) {
+            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
-        else {
-            throw new ScraperException('Failed to extract, response (' . json_encode($json) . ')');
+
+        $json = json_decode($response);
+
+        if (!isset($json->data->items[0]->date)) {
+            throw new ScraperException('Failed to resolve latest archive date, response (' . $response . ')');
         }
+
+        return $json->data->items[0]->date;
     }
 }
