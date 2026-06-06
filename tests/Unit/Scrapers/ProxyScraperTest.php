@@ -28,6 +28,15 @@ class ProxyScraperTest extends TestCase
         $this->assertStringContainsString('secure=true', $url);
     }
 
+    public function testGetUrlDoesNotTreatEncodedQueryValuesAsSprintfPlaceholders(): void
+    {
+        $scraper = new StubScraper(new MockHttpClient(), ['next' => 'https://example.test/path']);
+
+        $url = $scraper->buildUrl('x');
+
+        $this->assertStringContainsString('next=https%3A%2F%2Fexample.test%2Fpath', $url);
+    }
+
     public function testSetterOptionsAreRoutedToSetMethods(): void
     {
         $scraper = new StubScraper(new MockHttpClient(), ['foo_bar' => 'value', 'page' => 1]);

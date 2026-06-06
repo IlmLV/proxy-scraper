@@ -74,7 +74,9 @@ class ProxyScraper
      */
     protected function getUrl(string ...$values): string
     {
-        return sprintf($this->url . ($this->options ? '?' . http_build_query($this->options) : ''), ...$values);
+        $url = sprintf($this->url, ...$values);
+
+        return $this->options ? $url . '?' . http_build_query($this->options) : $url;
     }
 
     /**
