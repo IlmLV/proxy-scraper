@@ -37,13 +37,18 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $json = json_decode($response);
+        $json = json_decode($response, true);
+        $data = is_array($json) ? ($json['data'] ?? null) : null;
+        $proxyList = is_array($data) ? ($data['proxyList'] ?? null) : null;
 
-        if (!isset($json->data->proxyList) || !is_array($json->data->proxyList)) {
+        if (!is_array($proxyList)) {
             throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');
         }
 
-        foreach ($json->data->proxyList as $address) {
+        foreach ($proxyList as $address) {
+            if (!is_string($address)) {
+                continue;
+            }
             try {
                 yield new Proxy($this->protocol . '://' . $address);
             } catch (InvalidArgumentException $e) {
@@ -67,12 +72,16 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $json = json_decode($response);
+        $json = json_decode($response, true);
+        $data = is_array($json) ? ($json['data'] ?? null) : null;
+        $items = is_array($data) ? ($data['items'] ?? null) : null;
+        $first = is_array($items) ? ($items[0] ?? null) : null;
+        $date = is_array($first) ? ($first['date'] ?? null) : null;
 
-        if (!isset($json->data->items[0]->date)) {
+        if (!is_string($date)) {
             throw new ScraperException('Failed to resolve latest archive date, response (' . $response . ')');
         }
 
-        return $json->data->items[0]->date;
+        return $date;
     }
 }

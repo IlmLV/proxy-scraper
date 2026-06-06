@@ -75,6 +75,13 @@ class ProxyValidation
             'proxy' => false
         ]);
 
-        return new Host(json_decode($response->getContent())->ip);
+        $body = json_decode($response->getContent(), true);
+        $ip = is_array($body) ? ($body['ip'] ?? null) : null;
+
+        if (!is_string($ip)) {
+            throw new InvalidArgumentException('Failed to resolve real IP from response');
+        }
+
+        return new Host($ip);
     }
 }

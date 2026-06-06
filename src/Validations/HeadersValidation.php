@@ -89,6 +89,11 @@ class HeadersValidation extends AbstractRequestValidation
                 return $response->getStatusCode() === 200 && $body === '';
             } else {
                 $responseAttr = json_decode($response->getContent(), true);
+
+                if (!is_array($responseAttr)) {
+                    return false;
+                }
+
                 foreach($requestHeaders as $key => $value) {
                     $responseKey = kebabToSnake(strtolower($key));
                     $this->headers[$key] = isset($responseAttr[$responseKey]) ? ($responseAttr[$responseKey] === $value ? true : false) : false;

@@ -55,12 +55,21 @@ class IpValidation extends AbstractRequestValidation
     {
         try {
             $response = $this->request('GET', self::URL);
-            $body = json_decode($response->getContent());
+            $body = json_decode($response->getContent(), true);
 
-            $this->countryIsoCode = $body->country->iso_code;
-            $this->organisation = $body->organisation;
+            $country = is_array($body) ? ($body['country'] ?? null) : null;
+            $countryIsoCode = is_array($country) ? ($country['iso_code'] ?? null) : null;
+            $organisation = is_array($body) ? ($body['organisation'] ?? null) : null;
+            $ip = is_array($body) ? ($body['ip'] ?? null) : null;
 
-            return $response->getStatusCode() === 200 && $body->ip === $this->proxyHost->ip;
+            if (!is_string($countryIsoCode) || !is_string($organisation)) {
+                return false;
+            }
+
+            $this->countryIsoCode = $countryIsoCode;
+            $this->organisation = $organisation;
+
+            return $response->getStatusCode() === 200 && $ip === $this->proxyHost->ip;
         }
         catch (\Throwable $e) {
             $this->error = new ResponseError($e);

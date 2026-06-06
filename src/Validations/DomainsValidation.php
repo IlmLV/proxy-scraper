@@ -46,7 +46,9 @@ class DomainsValidation implements \JsonSerializable
 
     public function __set(string $name, mixed $value): void
     {
-        $this->validators[$name] = $value;
+        if ($value instanceof AbstractRequestValidation) {
+            $this->validators[$name] = $value;
+        }
     }
 
     public function __isset(string $name): bool

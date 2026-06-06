@@ -67,7 +67,7 @@ class AnonymityLevelValidation
             $response = $this->client->request('GET', self::URL);
             $body = json_decode($response->getContent(), true);
 
-            if (!$body) {
+            if (!is_array($body) || $body === []) {
                 if (
                     strpos($response->getContent(), 'Please wait') !== false
                     || strpos($response->getContent(), 'verified') !== false
