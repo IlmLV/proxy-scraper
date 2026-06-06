@@ -36,21 +36,21 @@ jobs:
       - name: Install dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      # No pipe here: piping PHPUnit into another command would mask its exit
+      # code and let failing tests report as a successful job. --coverage-text
+      # prints the report straight to the build log.
       - name: Run unit suite
-        run: |
-          vendor/bin/phpunit --testsuite unit \
-            --coverage-text \
-            --coverage-clover coverage.xml | tee phpunit-coverage.txt
+        run: vendor/bin/phpunit --testsuite unit --coverage-text --coverage-clover coverage.xml
 
       - name: Publish coverage to job summary
         if: ${{ matrix.php == '8.3' }}
+        continue-on-error: true
         run: |
-          {
-            echo '### Code coverage (PHP ${{ matrix.php }})'
-            echo '```'
-            grep -E '^\s*(Classes|Methods|Lines):' phpunit-coverage.txt || true
-            echo '```'
-          } >> "$GITHUB_STEP_SUMMARY"
+          # shellcheck disable=SC2016  # $vars below are PHP, not shell — keep single quotes
+          php -r '$m = simplexml_load_file("coverage.xml")->project->metrics;
+            $s = (int) $m["statements"]; $c = (int) $m["coveredstatements"];
+            printf("### Code coverage\n- Lines: %.2f%% (%d/%d)\n", $s ? $c / $s * 100 : 0, $c, $s);' \
+            >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload coverage artifact
         if: ${{ matrix.php == '8.3' }}
