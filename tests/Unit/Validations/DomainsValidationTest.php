@@ -24,7 +24,7 @@ class DomainsValidationTest extends TestCase
     public function testDomainValidatorFailsOnUnexpectedPage(): void
     {
         $client = MockClientFactory::router(
-            fn () => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
+             fn (string $method, string $url, array $options) => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
         );
 
         $validation = new DomainsValidation($client);
@@ -64,7 +64,7 @@ class DomainsValidationTest extends TestCase
 
     private static function expectedPagesClient(): MockHttpClient
     {
-        return MockClientFactory::router(function (string $method, string $url): MockResponse {
+        return MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
             $fixture = match (true) {
                 str_contains($url, 'example.com') => 'Validations/example.html',
                 str_contains($url, 'amazon')      => 'Validations/amazon.html',

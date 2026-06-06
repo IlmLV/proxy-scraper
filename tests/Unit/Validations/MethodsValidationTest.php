@@ -13,7 +13,7 @@ class MethodsValidationTest extends TestCase
     public function testAllMethodsValidatedAndLatencyAveraged(): void
     {
         // echo the request method back (HEAD must answer with an empty 200 body)
-        $client = MockClientFactory::router(function (string $method): MockResponse {
+        $client = MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
             if ($method === 'HEAD') {
                 return new MockResponse('', ['http_code' => 200]);
             }

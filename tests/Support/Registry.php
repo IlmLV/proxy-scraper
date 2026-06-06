@@ -14,9 +14,8 @@ final class Registry
     public static function scrapers(): array
     {
         $reflection = new \ReflectionClass(LoadProxies::class);
-        // Private members are reflection-accessible without setAccessible() since PHP 8.1.
-        $property = $reflection->getProperty('scrapers');
+        $instance = $reflection->newInstanceWithoutConstructor();
 
-        return $property->getValue($reflection->newInstanceWithoutConstructor());
+        return (\Closure::bind(static fn (LoadProxies $lp): array => $lp->scrapers, null, LoadProxies::class))($instance);
     }
 }

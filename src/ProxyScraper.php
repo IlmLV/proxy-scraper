@@ -74,7 +74,7 @@ class ProxyScraper
      */
     protected function getUrl(string ...$values): string
     {
-        $url = sprintf($this->url, ...$values);
+        $url = $values === [] ? $this->url : sprintf($this->url, ...$values);
 
         if ($this->options) {
             $url .= '?' . http_build_query($this->options);

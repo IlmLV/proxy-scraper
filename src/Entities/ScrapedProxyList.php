@@ -26,11 +26,7 @@ class ScrapedProxyList
      */
     public function get(): array
     {
-        $result = [];
-        foreach ($this->array as $proxies) {
-            $result += $proxies;
-        }
-        return $result;
+        return array_merge(...array_values($this->array));
     }
 
     /**

@@ -23,12 +23,12 @@ class ProxyValidation
     public bool $valid = true;
     public ?ResponseError $error = null;
 
-    public string $anonymityLevel;
-    public IpValidation $ip;
+    public ?string $anonymityLevel = null;
+    public ?IpValidation $ip = null;
 
-    public MethodsValidation $http;
-    public MethodsValidation $https;
-    public DomainsValidation $domains;
+    public ?MethodsValidation $http = null;
+    public ?MethodsValidation $https = null;
+    public ?DomainsValidation $domains = null;
 
     public \DateTimeInterface $validatedAt;
 

@@ -28,6 +28,11 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
         }
 
         foreach (explode("\n", $text) as $line) {
+            $line = trim($line);
+            if ($line === '') {
+                continue;
+            }
+
             try {
                 $proxy = (new Proxy($this->protocol . '://' . $line));
             } catch (InvalidArgumentException $e) {

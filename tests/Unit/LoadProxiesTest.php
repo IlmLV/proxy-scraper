@@ -36,7 +36,7 @@ class LoadProxiesTest extends TestCase
 
     public function testRunsMultipleSourcesWithRoutedResponses(): void
     {
-        $client = MockClientFactory::router(function (string $method, string $url): MockResponse {
+        $client = MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
             if (str_contains($url, 'free-proxy-list')) {
                 return new MockResponse(MockClientFactory::load('Sources/table-http.html'));
             }
@@ -53,6 +53,8 @@ class LoadProxiesTest extends TestCase
             ],
             $proxies->stats()
         );
+        // every proxy from both sources is returned, not just the larger source's worth
+        $this->assertCount(5, $proxies->get());
         $this->assertSame([], $proxies->errors());
     }
 

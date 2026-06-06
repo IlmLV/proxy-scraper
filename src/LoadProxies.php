@@ -164,9 +164,7 @@ class LoadProxies
         try {
             $result = (new $scraper($this->httpClient, $config))->get();
 
-            foreach($result as $item) {
-                $this->proxies->push($scraper, [$item]);
-            }
+            $this->proxies->push($scraper, iterator_to_array($result, false));
         }
         catch (ProxyScraperException $e) {
             $this->errors[$scraper] = $e;

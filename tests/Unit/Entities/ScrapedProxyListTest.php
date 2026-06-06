@@ -17,6 +17,31 @@ class ScrapedProxyListTest extends TestCase
         $this->assertCount(2, $list->get());
     }
 
+    public function testGetMergesProxiesFromMultipleScrapers(): void
+    {
+        $list = new ScrapedProxyList();
+        // Two scrapers whose list indices overlap (0,1,2 vs 0,1): a naive
+        // array-union (+=) would keep only the first scraper's collisions and
+        // silently drop the rest. get() must return every proxy.
+        $list->push('ScraperA', [
+            new Proxy('http://1.1.1.1:80'),
+            new Proxy('http://2.2.2.2:80'),
+            new Proxy('http://3.3.3.3:80'),
+        ]);
+        $list->push('ScraperB', [
+            new Proxy('http://4.4.4.4:80'),
+            new Proxy('http://5.5.5.5:80'),
+        ]);
+
+        $result = $list->get();
+
+        $this->assertCount(5, $result);
+        $this->assertSame(
+            ['1.1.1.1', '2.2.2.2', '3.3.3.3', '4.4.4.4', '5.5.5.5'],
+            array_map(static fn (Proxy $p): string => (string) $p->host, $result)
+        );
+    }
+
     public function testStatsCountByScraperAndProtocol(): void
     {
         $list = new ScrapedProxyList();

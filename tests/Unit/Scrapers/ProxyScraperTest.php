@@ -16,6 +16,15 @@ class ProxyScraperTest extends TestCase
         $this->assertSame('https://example.test/api/today', $scraper->buildUrl('today'));
     }
 
+    public function testGetUrlWithoutPlaceholderValuesReturnsUrlVerbatim(): void
+    {
+        // With no positional values the base URL must not be run through sprintf,
+        // so a literal '%' in the URL is preserved instead of being mangled/erroring.
+        $scraper = new StubScraper(new MockHttpClient());
+
+        $this->assertSame('https://example.test/api/%s', $scraper->buildUrl());
+    }
+
     public function testGetUrlAppendsOptionsAsQueryString(): void
     {
         $scraper = new StubScraper(new MockHttpClient(), ['page' => 2, 'secure' => true]);

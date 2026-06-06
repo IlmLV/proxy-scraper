@@ -37,12 +37,21 @@ class ProxyValidationTest extends TestCase
 
     public function testFailureWhenEndpointsUnreachable(): void
     {
-        $client = MockClientFactory::router(fn () => new MockResponse('', ['http_code' => 500]));
+        $client = MockClientFactory::router(fn (string $method, string $url, array $options) => new MockResponse('', ['http_code' => 500]));
 
         $validation = new ProxyValidation('http://1.2.3.4:8080', $client);
 
         $this->assertFalse($validation->valid);
         $this->assertInstanceOf(ResponseError::class, $validation->error);
+
+        // The result-carrying properties must be safe to read in the failure
+        // state, not throw "typed property must not be accessed before
+        // initialization".
+        $this->assertNull($validation->anonymityLevel);
+        $this->assertNull($validation->ip);
+        $this->assertNull($validation->http);
+        $this->assertNull($validation->https);
+        $this->assertNull($validation->domains);
     }
 
     /**
