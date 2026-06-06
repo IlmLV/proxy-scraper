@@ -11,7 +11,7 @@ final class VakhovFreshProxyListHttps extends TextListScraper implements Scraper
 {
     protected string $url = 'https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/https.txt';
 
-    protected string $protocol = 'https';
+    protected ?string $protocol = 'https';
 
     const SCHEDULE = '0 * * * *';
 }

@@ -11,5 +11,7 @@ final class MonosansProxyListHttp extends TextListScraper implements ScraperInte
 {
     protected string $url = 'https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt';
 
+    protected ?string $protocol = 'http';
+
     const SCHEDULE = '0 * * * *';
 }

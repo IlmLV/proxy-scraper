@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace IlmLV\ProxyScraper\Scrapers;
+namespace IlmLV\ProxyScraper\Sources;
 
 use Generator;
 use IlmLV\ProxyScraper\Entities\Proxy;
@@ -11,14 +11,19 @@ use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 
-abstract class TextListScraper extends ProxyScraper implements ScraperInterface
+/**
+ * spys.me runs its own scanner and serves a whitespace-separated list:
+ * "IP:PORT CC-Anonymity-SSL[!] [+]" preceded by a few banner/legend lines.
+ * We take the first token of each line as ip:port; banner lines fail the Proxy
+ * parse and are skipped automatically. The list is HTTP(S) proxies.
+ */
+final class SpysMeProxyList extends ProxyScraper implements ScraperInterface
 {
-    /**
-     * Protocol to prepend to each bare "ip:port" line. When null, the line is
-     * expected to already carry its scheme (e.g. "socks5://1.2.3.4:1080") and the
-     * Proxy constructor reads it per row.
-     */
-    protected ?string $protocol = null;
+    protected string $url = 'https://spys.me/proxy.txt';
+
+    protected string $protocol = 'http';
+
+    const SCHEDULE = '0 * * * *';
 
     /**
      * @return Generator<int, Proxy>
@@ -38,8 +43,14 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
                 continue;
             }
 
+            $parts = preg_split('/\s+/', $line);
+            if (!is_array($parts)) {
+                continue;
+            }
+            $address = $parts[0];
+
             try {
-                $proxy = new Proxy($this->protocol === null ? $line : $this->protocol . '://' . $line);
+                $proxy = new Proxy($this->protocol . '://' . $address);
             } catch (InvalidArgumentException $e) {
                 continue;
             }

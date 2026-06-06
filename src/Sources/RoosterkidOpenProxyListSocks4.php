@@ -11,7 +11,7 @@ final class RoosterkidOpenProxyListSocks4 extends TextListScraper implements Scr
 {
     protected string $url = 'https://raw.githubusercontent.com/roosterkid/openproxylist/main/SOCKS4_RAW.txt';
 
-    protected string $protocol = 'socks4';
+    protected ?string $protocol = 'socks4';
 
     const SCHEDULE = '0 * * * *';
 }

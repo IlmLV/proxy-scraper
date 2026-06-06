@@ -11,5 +11,7 @@ final class ShiftyTRProxyListHttp extends TextListScraper implements ScraperInte
 {
     protected string $url = 'https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/http.txt';
 
+    protected ?string $protocol = 'http';
+
     const SCHEDULE = '0 * * * *';
 }

@@ -34,10 +34,20 @@ abstract class TableListScraper extends ProxyScraper implements ScraperInterface
         }
 
         foreach ($rows as $row) {
-            $rowDom = new Dom($row);
-            $address = $rowDom->filter('td')->eq($this->colAddress)->text();
-            $port = $rowDom->filter('td')->eq($this->colPort)->text();
-            $protocol = $this->protocol ?: strtolower($rowDom->filter('td')->eq($this->colProtocol)->text());
+            $cells = (new Dom($row))->filter('td');
+
+            // Skip header/spacer/malformed rows that lack the columns we read;
+            // Crawler::text() throws on an empty node, which would abort the scrape.
+            $needed = $this->protocol === null
+                ? max($this->colAddress, $this->colPort, $this->colProtocol)
+                : max($this->colAddress, $this->colPort);
+            if ($cells->count() <= $needed) {
+                continue;
+            }
+
+            $address = $cells->eq($this->colAddress)->text();
+            $port = $cells->eq($this->colPort)->text();
+            $protocol = $this->protocol ?: strtolower($cells->eq($this->colProtocol)->text());
 
             try {
                 yield $this->makeProxy($address, $port, $protocol);

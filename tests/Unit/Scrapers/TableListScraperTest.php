@@ -33,6 +33,23 @@ class TableListScraperTest extends TestCase
         $this->assertSame('socks5', (string) $proxies[1]->protocol);
     }
 
+    public function testSkipsRowsWithMissingCells(): void
+    {
+        // A short/empty row (header, spacer, malformed) must be skipped without
+        // letting Crawler::text() throw and abort the whole scrape.
+        $html = '<table id="list"><tbody>'
+            . '<tr><td>1.2.3.4</td><td>8080</td><td>US</td></tr>'
+            . '<tr></tr>'
+            . '<tr><td>5.6.7.8</td></tr>'
+            . '<tr><td>9.10.11.12</td><td>3128</td><td>DE</td></tr>'
+            . '</tbody></table>';
+        $scraper = new FreeProxyListNet(MockClientFactory::fromString($html));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        $this->assertSame(['http://1.2.3.4:8080', 'http://9.10.11.12:3128'], $proxies);
+    }
+
     public function testHttpFailureThrowsScraperException(): void
     {
         $scraper = new FreeProxyListNet(MockClientFactory::fromString('', 503));

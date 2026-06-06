@@ -11,7 +11,7 @@ final class TheSpeedXProxyListSocks5 extends TextListScraper implements ScraperI
 {
     protected string $url = 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt';
 
-    protected string $protocol = 'socks5';
+    protected ?string $protocol = 'socks5';
 
     const SCHEDULE = '0 * * * *';
 }

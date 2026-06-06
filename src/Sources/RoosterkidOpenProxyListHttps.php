@@ -11,7 +11,7 @@ final class RoosterkidOpenProxyListHttps extends TextListScraper implements Scra
 {
     protected string $url = 'https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt';
 
-    protected string $protocol = 'https';
+    protected ?string $protocol = 'https';
 
     const SCHEDULE = '0 * * * *';
 }

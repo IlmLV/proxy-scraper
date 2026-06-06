@@ -11,5 +11,7 @@ final class ProxyScrapeComHttp extends TextListScraper implements ScraperInterfa
 {
     protected string $url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=http';
 
+    protected ?string $protocol = 'http';
+
     const SCHEDULE = '0 * * * *';
 }
