@@ -137,7 +137,7 @@ class LoadProxies
     }
 
     /**
-     * @param class-string<ProxyScraper&ScraperInterface>[]|class-string<ProxyScraper&ScraperInterface> $scrapers
+     * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
      */
     public function add(array|string $scrapers): self
     {
@@ -146,7 +146,7 @@ class LoadProxies
     }
 
     /**
-     * @param class-string<ProxyScraper&ScraperInterface>[]|class-string<ProxyScraper&ScraperInterface> $scrapers
+     * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
      */
     public function only(array|string $scrapers): self
     {

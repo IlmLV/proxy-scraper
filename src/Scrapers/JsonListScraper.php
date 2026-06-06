@@ -31,34 +31,39 @@ abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 
-        $json = json_decode($response);
-        $list = $this->listPath ? $json->{$this->listPath} : $json;
+        $json = json_decode($response, true);
+        $list = $this->listPath
+            ? (is_array($json) ? ($json[$this->listPath] ?? null) : null)
+            : $json;
+
+        if (!is_array($list)) {
+            throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');
+        }
 
         foreach ($list as $item) {
+            if (!is_array($item)) {
+                continue;
+            }
             yield $this->extractProxy($item);
         }
     }
 
     /**
-     * @param object $json
+     * @param array<array-key, mixed> $item
      * @return Proxy
      * @throws InvalidArgumentException
      * @throws ScraperException
      */
-    private function extractProxy(object $json): Proxy
+    private function extractProxy(array $item): Proxy
     {
-        if (property_exists($json, $this->hostProperty)
-            && property_exists($json, $this->portProperty)
-            && property_exists($json, $this->protocolProperty)
-        ) {
-            return $this->makeProxy(
-                $json->{$this->hostProperty},
-                $json->{$this->portProperty},
-                $json->{$this->protocolProperty}
-            );
+        $host = $item[$this->hostProperty] ?? null;
+        $port = $item[$this->portProperty] ?? null;
+        $protocol = $item[$this->protocolProperty] ?? null;
+
+        if (!is_scalar($host) || !is_scalar($port) || !is_scalar($protocol)) {
+            throw new ScraperException('Failed to extract, response (' . json_encode($item) . ')');
         }
-        else {
-            throw new ScraperException('Failed to extract, response (' . json_encode($json) . ')');
-        }
+
+        return $this->makeProxy((string) $host, (string) $port, (string) $protocol);
     }
 }

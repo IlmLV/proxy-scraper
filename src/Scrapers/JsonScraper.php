@@ -41,21 +41,16 @@ abstract class JsonScraper extends ProxyScraper implements ScraperInterface
      */
     private function extractProxy(string $response): Proxy
     {
-        $json = json_decode($response);
+        $json = json_decode($response, true);
 
-        if (is_object($json)
-            && property_exists($json, $this->hostProperty)
-            && property_exists($json, $this->portProperty)
-            && property_exists($json, $this->protocolProperty)
-        ) {
-            return $this->makeProxy(
-                $json->{$this->hostProperty},
-                $json->{$this->portProperty},
-                $json->{$this->protocolProperty}
-            );
-        }
-        else {
+        $host = is_array($json) ? ($json[$this->hostProperty] ?? null) : null;
+        $port = is_array($json) ? ($json[$this->portProperty] ?? null) : null;
+        $protocol = is_array($json) ? ($json[$this->protocolProperty] ?? null) : null;
+
+        if (!is_scalar($host) || !is_scalar($port) || !is_scalar($protocol)) {
             throw new ScraperException('Failed to extract, response (' . $response . ')');
         }
+
+        return $this->makeProxy((string) $host, (string) $port, (string) $protocol);
     }
 }

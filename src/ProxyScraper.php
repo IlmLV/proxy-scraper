@@ -19,6 +19,7 @@ class ProxyScraper
      */
     protected array $options;
 
+    /** @var string */
     const SCHEDULE = '* * * * *';
 
     /**
