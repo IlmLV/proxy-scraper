@@ -230,13 +230,35 @@ Result:
 
 ```
 
+## Testing
+The library ships with a PHPUnit test suite split into two suites:
+
+- **unit** — fully offline and deterministic. Every HTTP call is mocked with
+  Symfony's `MockHttpClient`, so the entities, scraper base classes, all proxy
+  sources and the validation subsystem are tested without touching the network.
+- **live** — hits the real provider endpoints and asserts each source is still
+  reachable and returns proxies. It doubles as a dead-provider monitor and is
+  kept out of the gating pipeline.
+
+```bash
+composer install
+
+composer test            # unit suite (offline)
+composer test:coverage   # unit suite + text coverage report (needs pcov or xdebug)
+composer test:live       # live suite (requires network)
+```
+
+Continuous integration runs on GitHub Actions (see `.github/workflows/ci.yml`): the
+unit suite runs across PHP 8.1–8.5 with code-coverage reporting, and the live suite
+runs as a separate, non-blocking job on a weekly schedule (and on demand) so dead or
+drifting providers are caught early.
+
 ## TODO:
 - Add capability to add custom domain validations
 - Reduce dependencies
-- Test and improve support for wider range of PHP versions
 - Improve documentation
 - Tighten argument strict conditions
 - Add more proxy sources
-- Create functional tests
-- Monitor test coverage
-- Expand php compatibility
+- ~~Create functional tests~~ ✅
+- ~~Monitor test coverage~~ ✅
+- Expand PHP compatibility (CI now covers PHP 8.1–8.5)

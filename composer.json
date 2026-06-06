@@ -4,7 +4,7 @@
   "type": "library",
   "description": "Library for scraping free proxy lists and validating proxy capabilities",
   "require": {
-    "php": "^8.0",
+    "php": "^8.1",
     "ext-json": "*",
     "ext-dom": "*",
     "ext-simplexml": "*",
@@ -14,7 +14,8 @@
     "symfony/css-selector": "^6.2"
   },
   "require-dev": {
-    "symfony/var-dumper": "^6.1"
+    "symfony/var-dumper": "^6.1",
+    "phpunit/phpunit": "^10.5"
   },
   "autoload": {
     "psr-4": {
@@ -25,5 +26,20 @@
     "files": [
       "helpers.php"
     ]
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "IlmLV\\ProxyScraper\\Tests\\": "tests/"
+    }
+  },
+  "config": {
+    "platform": {
+      "php": "8.1"
+    }
+  },
+  "scripts": {
+    "test": "phpunit --testsuite unit",
+    "test:live": "phpunit --testsuite live",
+    "test:coverage": "phpunit --testsuite unit --coverage-text"
   }
 }

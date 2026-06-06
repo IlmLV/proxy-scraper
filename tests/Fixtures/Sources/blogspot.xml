@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns='http://www.w3.org/2005/Atom'>
+  <title>Free Proxy List</title>
+  <entry>
+    <title>Proxies batch 1</title>
+    <content type='html'>1.2.3.4:8080 5.6.7.8:3128
+9.10.11.12	8888</content>
+  </entry>
+  <entry>
+    <title>Proxies batch 2</title>
+    <content type='html'>200.1.2.3:80</content>
+  </entry>
+</feed>

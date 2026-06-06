@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # Weekly run (Mondays 06:00 UTC) so the live provider monitor catches drift.
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  # Mocked, deterministic, offline suite — gates the build across every supported PHP.
+  unit:
+    name: Unit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4', '8.5']
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, simplexml, json
+          coverage: pcov
+
+      # composer.lock is intentionally not committed (library); config.platform.php
+      # in composer.json keeps resolution PHP 8.1-safe across the matrix.
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run unit suite
+        run: |
+          vendor/bin/phpunit --testsuite unit \
+            --coverage-text \
+            --coverage-clover coverage.xml | tee phpunit-coverage.txt
+
+      - name: Publish coverage to job summary
+        if: ${{ matrix.php == '8.3' }}
+        run: |
+          {
+            echo '### Code coverage (PHP ${{ matrix.php }})'
+            echo '```'
+            grep -E '^\s*(Classes|Methods|Lines):' phpunit-coverage.txt || true
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage artifact
+        if: ${{ matrix.php == '8.3' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover
+          path: coverage.xml
+          retention-days: 7
+
+  # Hits the real provider endpoints — the dead-provider monitor.
+  # Runs only on schedule or manual dispatch and never blocks the build.
+  live-sources:
+    name: Live providers (monitor)
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, simplexml, json
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Run live suite
+        run: vendor/bin/phpunit --testsuite live
