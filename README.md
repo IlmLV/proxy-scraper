@@ -37,7 +37,7 @@ socks4 / socks5** proxies.
 - [Contributing](#contributing)
 
 ## Installation
-Recomended installation method is via composer:
+Recommended installation method is via composer:
 ```
 composer require ilmlv/proxy-scraper
 ```
