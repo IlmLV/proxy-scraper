@@ -34,7 +34,6 @@ socks4 / socks5** proxies.
 - [Proxy scraper sources](#proxy-scraper-sources)
 - [Proxy validation](#proxy-validation)
 - [Testing](#testing)
-- [Changelog](#changelog)
 - [Contributing](#contributing)
 
 ## Installation
@@ -441,12 +440,14 @@ composer install
 composer test            # unit suite (offline)
 composer test:coverage   # unit suite + text coverage report (needs pcov or xdebug)
 composer test:live       # live suite (requires network)
+composer analyse         # PHPStan static analysis (level 5, offline)
 ```
 
 Continuous integration runs on GitHub Actions (see `.github/workflows/ci.yml`): the
-unit suite runs across PHP 8.1–8.5 with code-coverage reporting, and the live suite
-runs as a separate, non-blocking job on a weekly schedule (and on demand) so dead or
-drifting providers are caught early.
+unit suite runs across PHP 8.1–8.5 with code-coverage reporting, PHPStan static
+analysis runs as a separate gating job, and the live suite runs as a separate,
+non-blocking job on a weekly schedule (and on demand) so dead or drifting providers
+are caught early.
 
 ## TODO:
 - Add capability to add custom domain validations
