@@ -3,15 +3,17 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use IlmLV\ProxyScraper\LoadProxies;
-use IlmLV\ProxyScraper\Sources\GimmeProxyCom;
+use IlmLV\ProxyScraper\Sources\PubProxyCom;
 use Symfony\Component\HttpClient\HttpClient;
 
+// Extra keys are appended to the source URL as query parameters,
+// so they can be used to tune sources that accept them (e.g. pubproxy.com).
 $scraperConfig = [
-    GimmeProxyCom::class => [
-        //'api_key' => 'xxx',
-        'protocol' => 'socks5',
-        'supportsHttps' => true,
-        'maxCheckPeriod' => 600
+    PubProxyCom::class => [
+        //'api' => 'xxx',
+        'country' => 'US',
+        'https' => true,
+        'level' => 'elite'
     ]
 ];
 
@@ -20,7 +22,7 @@ $httpClient = HttpClient::create([
 ]);
 
 $proxies = LoadProxies::init($scraperConfig, $httpClient)
-    ->only(GimmeProxyCom::class);
+    ->only(PubProxyCom::class);
 
 dump($proxies->stats());
 

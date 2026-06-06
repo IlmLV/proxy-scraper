@@ -3,10 +3,10 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use IlmLV\ProxyScraper\LoadProxies;
-use IlmLV\ProxyScraper\Sources\GimmeProxyCom;
+use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 
 $proxies = LoadProxies::init()
-    ->only(GimmeProxyCom::class);
+    ->only(FreeProxyListNet::class);
 
 dump($proxies->stats());
 

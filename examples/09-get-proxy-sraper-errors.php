@@ -3,18 +3,18 @@
 require_once __DIR__ . '/../vendor/autoload.php';
 
 use IlmLV\ProxyScraper\LoadProxies;
-use IlmLV\ProxyScraper\Sources\GimmeProxyCom;
+use IlmLV\ProxyScraper\Sources\PubProxyCom;
 
 $scraperConfig = [
-    GimmeProxyCom::class => [
-        'api_key' => 'wrong_key',
-        'protocol' => 'wrong_protocol',
+    PubProxyCom::class => [
+        'api' => 'wrong_key',
+        'level' => 'wrong_level',
         'wrongParameter' => 'wrong_value'
     ]
 ];
 
 $proxies = LoadProxies::init($scraperConfig)
-    ->only(GimmeProxyCom::class);
+    ->only(PubProxyCom::class);
 
 dump($proxies->stats());
 
