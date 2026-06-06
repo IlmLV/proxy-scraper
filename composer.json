@@ -1,8 +1,32 @@
 {
   "name": "ilmlv/proxy-scraper",
-  "license": "MIT",
-  "type": "library",
   "description": "Library for scraping free proxy lists and validating proxy capabilities",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "proxy",
+    "proxy-list",
+    "proxy-scraper",
+    "proxy-checker",
+    "proxy-validation",
+    "http-proxy",
+    "socks4",
+    "socks5",
+    "free-proxy",
+    "scraper"
+  ],
+  "homepage": "https://github.com/IlmLV/proxy-scraper",
+  "authors": [
+    {
+      "name": "Ilmārs Kluss",
+      "homepage": "https://github.com/IlmLV",
+      "role": "Developer"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/IlmLV/proxy-scraper/issues",
+    "source": "https://github.com/IlmLV/proxy-scraper"
+  },
   "require": {
     "php": "^8.1",
     "ext-json": "*",

@@ -1,11 +1,41 @@
+<p align="center">
+  <img src="assets/logo.svg" alt="Proxy Scraper" width="560">
+</p>
+
+<p align="center">
+  <a href="https://github.com/IlmLV/proxy-scraper/actions/workflows/ci.yml"><img src="https://github.com/IlmLV/proxy-scraper/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
+  <a href="https://packagist.org/packages/ilmlv/proxy-scraper"><img src="https://img.shields.io/packagist/v/ilmlv/proxy-scraper.svg" alt="Latest version"></a>
+  <a href="https://packagist.org/packages/ilmlv/proxy-scraper/stats"><img src="https://img.shields.io/packagist/dt/ilmlv/proxy-scraper.svg" alt="Total downloads"></a>
+  <a href="https://packagist.org/packages/ilmlv/proxy-scraper"><img src="https://img.shields.io/packagist/dependency-v/ilmlv/proxy-scraper/php.svg" alt="PHP version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/packagist/l/ilmlv/proxy-scraper.svg" alt="License"></a>
+</p>
+
 # Proxy Scraper and Validator
 
-This library is designed to scrape free proxy resources and also individually validate those capabilities.
-Support for http/https/socks4/socks5 proxies.
+Scrape free proxy lists from 20+ sources and individually validate proxy capabilities —
+anonymity level, latency, HTTP(S) method support and more. Supports **http / https /
+socks4 / socks5** proxies.
 
-***WARNING!*** Keep in mind that free public proxies is HIGHLY not recommended for sensitive data transfer.
+> [!WARNING]
+> Free public proxies are **highly** not recommended for sensitive data transfer.
 
-See the [usage examples](#usage) below.
+## Why this library
+
+- **Batteries included** — 20+ real free-proxy sources work out of the box; add your own in a few lines.
+- **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
+- **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
+- **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
+- **Modern & type-safe** — PHP 8.1+, `declare(strict_types=1)`, PSR-4, and a fully mockable Symfony HTTP client.
+
+## Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Proxy scraper sources](#proxy-scraper-sources)
+- [Proxy validation](#proxy-validation)
+- [Testing](#testing)
+- [Changelog](#changelog)
+- [Contributing](#contributing)
 
 ## Installation
 Recomended installation method is via composer:
@@ -156,10 +186,10 @@ Feel free to request more sources.
 ### Proxy scrapers
 Keep in mind that there is prepared multiple types of scraping libraries that can be used to simplify creation of your own source scrapers.
 Currently supported source data types:
-- [JSON list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/JsonListScrapper.php)
-- [JSON object scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/JsonScrapper.php)
-- [Table list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TableListScraper.php)
-- [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/tree/master/src/Scrapers/TextListScrapper.php)
+- [JSON list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/JsonListScraper.php)
+- [JSON object scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/JsonScraper.php)
+- [Table list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TableListScraper.php)
+- [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TextListScraper.php)
 
 ### Define a custom source
 
@@ -169,9 +199,9 @@ class to `only()`/`add()` — there is no need to register it in `LoadProxies`:
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\ScraperInterface;
-use IlmLV\ProxyScraper\Scrapers\JsonScrapper;
+use IlmLV\ProxyScraper\Scrapers\JsonScraper;
 
-class CustomGimmeProxy extends JsonScrapper implements ScraperInterface
+class CustomGimmeProxy extends JsonScraper implements ScraperInterface
 {
     protected string $url = 'https://gimmeproxy.com/api/getProxy';
 }
