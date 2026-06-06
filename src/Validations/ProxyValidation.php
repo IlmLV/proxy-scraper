@@ -21,7 +21,7 @@ class ProxyValidation
     private string $httpsUrl = 'https://whoami.serviss.it/?format=json';
 
     public bool $valid = true;
-    public ResponseError $error;
+    public ?ResponseError $error = null;
 
     public string $anonymityLevel;
     public IpValidation $ip;

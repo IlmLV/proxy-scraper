@@ -139,11 +139,10 @@ class LoadProxies
     /**
      * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
      */
-public function add(array|string $scrapers): self
-{
-    $this->scrapers = array_values(array_unique(array_merge($this->scrapers, is_string($scrapers) ? [$scrapers] : $scrapers)));
-    return $this;
-}
+    public function add(array|string $scrapers): self
+    {
+        $this->scrapers = array_values(array_unique(array_merge($this->scrapers, is_string($scrapers) ? [$scrapers] : $scrapers)));
+        return $this;
     }
 
     /**

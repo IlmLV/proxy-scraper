@@ -76,7 +76,11 @@ class ProxyScraper
     {
         $url = sprintf($this->url, ...$values);
 
-        return $this->options ? $url . '?' . http_build_query($this->options) : $url;
+        if ($this->options) {
+            $url .= '?' . http_build_query($this->options);
+        }
+
+        return $url;
     }
 
     /**
