@@ -18,7 +18,7 @@ abstract class JsonScraper extends ProxyScraper implements ScraperInterface
     protected string $protocolProperty = 'protocol';
 
     /**
-     * @return Generator
+     * @return Generator<int, Proxy>
      * @throws InvalidArgumentException
      * @throws ScraperException
      */

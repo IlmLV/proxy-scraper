@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper;
 
 use Cron\CronExpression;
+use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Entities\ScrapedProxyList;
 use IlmLV\ProxyScraper\Exceptions\ProxyScraperException;
 use Symfony\Component\HttpClient\HttpClient;
@@ -22,6 +23,9 @@ class LoadProxies
      */
     protected HttpClientInterface $httpClient;
 
+    /**
+     * @var array<int, class-string<ProxyScraper&ScraperInterface>>
+     */
     private array $scrapers = [
         \IlmLV\ProxyScraper\Sources\BlogspotProxyCom::class,
         \IlmLV\ProxyScraper\Sources\CheckerProxyNet::class,
@@ -53,10 +57,19 @@ class LoadProxies
         \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListSocks5::class,
     ];
 
+    /**
+     * @var array<string, array<string, mixed>>
+     */
     private array $scraperConfig = [];
 
+    /**
+     * @var array<string, ProxyScraperException>
+     */
     private array $errors = [];
 
+    /**
+     * @param array<string, array<string, mixed>> $scraperConfig
+     */
     public function __construct(array $scraperConfig = [], ?HttpClientInterface $httpClient = null)
     {
         $this->scraperConfig += $scraperConfig;
@@ -68,6 +81,9 @@ class LoadProxies
         $this->proxies = new ScrapedProxyList;
     }
 
+    /**
+     * @param array<string, array<string, mixed>> $scraperConfig
+     */
     public static function init(array $scraperConfig = [], ?HttpClientInterface $httpClient = null): LoadProxies
     {
         return new self($scraperConfig, $httpClient);
@@ -78,16 +94,25 @@ class LoadProxies
         return $this->proxies;
     }
 
+    /**
+     * @return Proxy[]
+     */
     public function get(): array
     {
         return $this->proxies->get();
     }
 
+    /**
+     * @return array<string, array<string, int>>
+     */
     public function stats(): array
     {
         return $this->proxies->stats();
     }
 
+    /**
+     * @return array<string, ProxyScraperException>
+     */
     public function errors(): array
     {
         return $this->errors;
@@ -111,12 +136,18 @@ class LoadProxies
         return $this;
     }
 
+    /**
+     * @param class-string<ProxyScraper&ScraperInterface>[]|class-string<ProxyScraper&ScraperInterface> $scrapers
+     */
     public function add(array|string $scrapers): self
     {
         $this->scrapers += is_string($scrapers) ? [$scrapers] : $scrapers;
         return $this;
     }
 
+    /**
+     * @param class-string<ProxyScraper&ScraperInterface>[]|class-string<ProxyScraper&ScraperInterface> $scrapers
+     */
     public function only(array|string $scrapers): self
     {
         $this->scrapers = is_string($scrapers) ? [$scrapers] : $scrapers;

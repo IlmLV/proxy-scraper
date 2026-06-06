@@ -8,6 +8,9 @@ use IlmLV\ProxyScraper\Entities\ResponseError;
 
 class HeadersValidation extends AbstractRequestValidation
 {
+    /**
+     * @var array<string, array<string, string>>
+     */
     private array $headerValues = [
         'common' => [
             'A-IM' => 'feed',
@@ -63,6 +66,9 @@ class HeadersValidation extends AbstractRequestValidation
         'DELETE' => [],
         'PATCH' => [],
     ];
+    /**
+     * @var array<string, bool>
+     */
     public array $headers = [];
 
     /**

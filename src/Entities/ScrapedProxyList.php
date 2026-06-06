@@ -7,13 +7,13 @@ namespace IlmLV\ProxyScraper\Entities;
 class ScrapedProxyList
 {
     /**
-     * @var array
+     * @var array<string, Proxy[]>
      */
     private array $array = [];
 
     /**
      * @param string $scraper
-     * @param array $proxies
+     * @param Proxy[] $proxies
      * @return void
      */
     public function push(string $scraper, array $proxies): void
@@ -34,7 +34,7 @@ class ScrapedProxyList
     }
 
     /**
-     * @return array
+     * @return array<string, array<string, int>>
      */
     public function stats(): array
     {

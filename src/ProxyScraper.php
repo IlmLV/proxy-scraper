@@ -14,6 +14,9 @@ class ProxyScraper
 {
     protected string $url;
 
+    /**
+     * @var array<string, mixed>
+     */
     protected array $options;
 
     const SCHEDULE = '* * * * *';
@@ -23,6 +26,9 @@ class ProxyScraper
      */
     protected HttpClientInterface $httpClient;
 
+    /**
+     * @param array<string, mixed> $options
+     */
     public function __construct(HttpClientInterface $httpClient, array $options = [])
     {
         $this->httpClient = $httpClient;
@@ -30,7 +36,10 @@ class ProxyScraper
         $this->loadOptions($options);
     }
 
-    private function loadOptions(&$options = []): void
+    /**
+     * @param array<string, mixed> $options
+     */
+    private function loadOptions(array &$options = []): void
     {
         foreach ($options as $key => $value) {
             $methodName = snakeToCamel('set_'. $key);
@@ -44,6 +53,10 @@ class ProxyScraper
         $this->options = $this->processOptions($options);
     }
 
+    /**
+     * @param array<string, mixed> $options
+     * @return array<string, mixed>
+     */
     private function processOptions(array $options): array
     {
         // cast all booleans as string
@@ -64,13 +77,13 @@ class ProxyScraper
     }
 
     /**
-     * @param $ip
-     * @param $port
-     * @param $protocol
+     * @param string $ip
+     * @param int|string $port
+     * @param string $protocol
      * @return Proxy
      * @throws Exceptions\InvalidArgumentException
      */
-    protected function makeProxy($ip, $port, $protocol): Proxy
+    protected function makeProxy(string $ip, int|string $port, string $protocol): Proxy
     {
         return new Proxy(new Protocol($protocol), new Host($ip), new Port($port));
     }

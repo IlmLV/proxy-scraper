@@ -70,7 +70,7 @@ abstract class AbstractRequestValidation
     /**
      * @param string $method
      * @param string $url
-     * @param array $options
+     * @param array<string, mixed> $options
      * @return ResponseInterface
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */

@@ -16,7 +16,7 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
     protected string $protocol = 'http';
 
     /**
-     * @return Generator
+     * @return Generator<int, Proxy>
      * @throws ScraperException
      */
     public function get(): Generator

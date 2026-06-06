@@ -8,6 +8,9 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class MethodsValidation
 {
+    /**
+     * @var string[]
+     */
     private array $requestMethods = [
         'GET',
         'POST',
@@ -27,6 +30,9 @@ class MethodsValidation
     public HeadersValidation $delete;
     public HeadersValidation $patch;
 
+    /**
+     * @param string[]|null $requestMethods
+     */
     public function __construct(string $url, ?HttpClientInterface $client = null, ?array $requestMethods = null)
     {
         if ($requestMethods)
