@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
@@ -51,7 +53,7 @@ class AnonymityLevelValidation
     public function __toString(): string
     {
         if (!$this->anonymityLevel)
-            throw new ValidatorException($this->error);
+            throw new ValidatorException((string) $this->error);
 
         return $this->anonymityLevel;
     }

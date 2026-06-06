@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Scrapers;
 
 use Generator;
@@ -9,7 +11,7 @@ use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 
-abstract class TextListScrapper extends ProxyScraper implements ScraperInterface
+abstract class TextListScraper extends ProxyScraper implements ScraperInterface
 {
     protected string $protocol = 'http';
 

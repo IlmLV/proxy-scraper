@@ -3,14 +3,14 @@
 namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
-use IlmLV\ProxyScraper\Tests\Support\StubJsonListScrapper;
+use IlmLV\ProxyScraper\Tests\Support\StubJsonListScraper;
 use PHPUnit\Framework\TestCase;
 
-class JsonListScrapperTest extends TestCase
+class JsonListScraperTest extends TestCase
 {
     public function testParsesRootArrayList(): void
     {
-        $scraper = new StubJsonListScrapper(MockClientFactory::fromFixture('Sources/jsonlist-root.json'));
+        $scraper = new StubJsonListScraper(MockClientFactory::fromFixture('Sources/jsonlist-root.json'));
 
         $proxies = iterator_to_array($scraper->get(), false);
 

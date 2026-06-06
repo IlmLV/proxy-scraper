@@ -8,7 +8,7 @@ use IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks5;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
 
-class TextListScrapperTest extends TestCase
+class TextListScraperTest extends TestCase
 {
     public function testParsesIpPortLinesAndSkipsInvalid(): void
     {

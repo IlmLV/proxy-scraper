@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;

@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\Scrapers\TextListScrapper;
+use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 
-final class VakhovFreshProxyListSocks4 extends TextListScrapper implements ScraperInterface
+final class VakhovFreshProxyListSocks4 extends TextListScraper implements ScraperInterface
 {
     protected string $url = 'https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/socks4.txt';
 
