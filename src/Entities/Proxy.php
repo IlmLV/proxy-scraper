@@ -44,6 +44,9 @@ final class Proxy
     public function __construct(Protocol|string $mixed, ?Host $host = null, ?Port $port = null, ?string $username = null, ?string $password = null)
     {
         if ($mixed instanceof Protocol) {
+            if ($host === null || $port === null) {
+                throw new InvalidArgumentException('Host and port are required when constructing from a Protocol instance');
+            }
             $this->protocol = $mixed;
             $this->host = $host;
             $this->port = $port;
