@@ -27,7 +27,14 @@ class LoadProxies
         \IlmLV\ProxyScraper\Sources\FreeProxyListNet::class,
         \IlmLV\ProxyScraper\Sources\FreeProxyListNetAnonymousProxy::class,
         \IlmLV\ProxyScraper\Sources\FreeProxyListNetUkProxy::class,
+        \IlmLV\ProxyScraper\Sources\MonosansProxyListHttp::class,
+        \IlmLV\ProxyScraper\Sources\ProxyScrapeComHttp::class,
+        \IlmLV\ProxyScraper\Sources\ProxyScrapeComSocks4::class,
+        \IlmLV\ProxyScraper\Sources\ProxyScrapeComSocks5::class,
         \IlmLV\ProxyScraper\Sources\PubProxyCom::class,
+        \IlmLV\ProxyScraper\Sources\RoosterkidOpenProxyListHttps::class,
+        \IlmLV\ProxyScraper\Sources\RoosterkidOpenProxyListSocks4::class,
+        \IlmLV\ProxyScraper\Sources\RoosterkidOpenProxyListSocks5::class,
         \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListHttp::class,
         \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListHttps::class,
         \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks4::class,
@@ -38,6 +45,10 @@ class LoadProxies
         \IlmLV\ProxyScraper\Sources\TheSpeedXProxyListSocks4::class,
         \IlmLV\ProxyScraper\Sources\TheSpeedXProxyListSocks5::class,
         \IlmLV\ProxyScraper\Sources\UsProxyOrg::class,
+        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListHttp::class,
+        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListHttps::class,
+        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListSocks4::class,
+        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListSocks5::class,
     ];
 
     private array $scraperConfig = [];

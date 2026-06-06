@@ -33,14 +33,25 @@ class SourceParsingTest extends TestCase
     public static function textListSourceProvider(): array
     {
         return [
-            'clarketm'         => [Sources\ClarketmProxyList::class, 'http'],
-            'shifty http'      => [Sources\ShiftyTRProxyListHttp::class, 'http'],
-            'shifty https'     => [Sources\ShiftyTRProxyListHttps::class, 'https'],
-            'shifty socks4'    => [Sources\ShiftyTRProxyListSocks4::class, 'socks4'],
-            'shifty socks5'    => [Sources\ShiftyTRProxyListSocks5::class, 'socks5'],
-            'thespeedx http'   => [Sources\TheSpeedXProxyListHttp::class, 'http'],
-            'thespeedx socks4' => [Sources\TheSpeedXProxyListSocks4::class, 'socks4'],
-            'thespeedx socks5' => [Sources\TheSpeedXProxyListSocks5::class, 'socks5'],
+            'clarketm'          => [Sources\ClarketmProxyList::class, 'http'],
+            'monosans http'     => [Sources\MonosansProxyListHttp::class, 'http'],
+            'proxyscrape http'  => [Sources\ProxyScrapeComHttp::class, 'http'],
+            'proxyscrape socks4'=> [Sources\ProxyScrapeComSocks4::class, 'socks4'],
+            'proxyscrape socks5'=> [Sources\ProxyScrapeComSocks5::class, 'socks5'],
+            'roosterkid https'  => [Sources\RoosterkidOpenProxyListHttps::class, 'https'],
+            'roosterkid socks4' => [Sources\RoosterkidOpenProxyListSocks4::class, 'socks4'],
+            'roosterkid socks5' => [Sources\RoosterkidOpenProxyListSocks5::class, 'socks5'],
+            'shifty http'       => [Sources\ShiftyTRProxyListHttp::class, 'http'],
+            'shifty https'      => [Sources\ShiftyTRProxyListHttps::class, 'https'],
+            'shifty socks4'     => [Sources\ShiftyTRProxyListSocks4::class, 'socks4'],
+            'shifty socks5'     => [Sources\ShiftyTRProxyListSocks5::class, 'socks5'],
+            'thespeedx http'    => [Sources\TheSpeedXProxyListHttp::class, 'http'],
+            'thespeedx socks4'  => [Sources\TheSpeedXProxyListSocks4::class, 'socks4'],
+            'thespeedx socks5'  => [Sources\TheSpeedXProxyListSocks5::class, 'socks5'],
+            'vakhov http'       => [Sources\VakhovFreshProxyListHttp::class, 'http'],
+            'vakhov https'      => [Sources\VakhovFreshProxyListHttps::class, 'https'],
+            'vakhov socks4'     => [Sources\VakhovFreshProxyListSocks4::class, 'socks4'],
+            'vakhov socks5'     => [Sources\VakhovFreshProxyListSocks5::class, 'socks5'],
         ];
     }
 

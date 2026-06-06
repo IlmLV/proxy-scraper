@@ -21,7 +21,10 @@ Currently implemented proxy sources:
 - [free-proxy-list.net](https://www.free-proxy-list.net)
 - [free-proxy-list.net/anonymous-proxy.html](https://free-proxy-list.net/anonymous-proxy.html)
 - [free-proxy-list.net/uk-proxy.html](https://free-proxy-list.net/uk-proxy.html)
+- [monosans/proxy-list](https://github.com/monosans/proxy-list) (http)
+- [proxyscrape.com](https://proxyscrape.com/free-proxy-list) (http/socks4/socks5)
 - [pubproxy.com](http://pubproxy.com/)
+- [roosterkid/openproxylist](https://github.com/roosterkid/openproxylist) (https/socks4/socks5)
 - [ShiftyTR/Proxy-List](https://github.com/ShiftyTR/Proxy-List)
 - [ShiftyTR/Proxy-List/https.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/https.txt)
 - [ShiftyTR/Proxy-List/socks4.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/socks4.txt)
@@ -32,6 +35,7 @@ Currently implemented proxy sources:
 - [TheSpeedX/PROXY-List/socks4.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks4.txt)
 - [TheSpeedX/PROXY-List/socks5.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks5.txt)
 - [us-proxy.org](https://www.us-proxy.org)
+- [vakhov/fresh-proxy-list](https://github.com/vakhov/fresh-proxy-list) (http/https/socks4/socks5)
 
 Feel free to request more sources.
 
