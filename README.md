@@ -440,7 +440,7 @@ composer install
 composer test            # unit suite (offline)
 composer test:coverage   # unit suite + text coverage report (needs pcov or xdebug)
 composer test:live       # live suite (requires network)
-composer analyse         # PHPStan static analysis (level 5, offline)
+composer analyse         # PHPStan static analysis (level 10, offline)
 ```
 
 Continuous integration runs on GitHub Actions (see `.github/workflows/ci.yml`): the
