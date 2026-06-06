@@ -33,7 +33,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
 
         try {
             $response = $this->httpClient->request('GET', $this->url . '/' . $date)->getContent();
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 
@@ -63,7 +63,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
     {
         try {
             $response = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 

@@ -28,7 +28,7 @@ abstract class TableListScraper extends ProxyScraper implements ScraperInterface
         try {
             $html = $this->httpClient->request('GET', $this->url)->getContent();
             $rows = (new Dom($html))->filter($this->rowPath);
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 

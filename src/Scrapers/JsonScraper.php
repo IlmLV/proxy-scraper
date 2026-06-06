@@ -26,7 +26,7 @@ abstract class JsonScraper extends ProxyScraper implements ScraperInterface
     {
         try {
             $response = $this->httpClient->request('GET', $this->getUrl())->getContent();
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 

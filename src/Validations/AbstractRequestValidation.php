@@ -61,6 +61,13 @@ abstract class AbstractRequestValidation
     }
 
     /**
+     * Run the validation for this request and report whether the proxy passed.
+     *
+     * @return bool
+     */
+    abstract public function validate(): bool;
+
+    /**
      * @param string $method
      * @param string $url
      * @param array $options

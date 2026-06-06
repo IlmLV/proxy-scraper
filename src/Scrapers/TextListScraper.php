@@ -23,7 +23,7 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
     {
         try {
             $text = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Exception|\Throwable $e) {
+        } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
 

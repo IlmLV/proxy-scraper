@@ -17,7 +17,7 @@ class GoogleCom extends AbstractRequestValidation
 
     public function __construct(?HttpClientInterface $client = null)
     {
-        return parent::__construct(self::METHOD, self::URL, $client);
+        parent::__construct(self::METHOD, self::URL, $client);
     }
 
     public function validate(): bool
