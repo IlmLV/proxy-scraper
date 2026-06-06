@@ -33,7 +33,7 @@ class ProxyValidation
     /**
      * @throws InvalidArgumentException
      */
-    public function __construct(Proxy|string $proxy, HttpClientInterface $client = null)
+    public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null)
     {
         $this->proxy = is_string($proxy) ? new Proxy($proxy) : $proxy;
 

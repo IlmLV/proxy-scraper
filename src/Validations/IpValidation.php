@@ -39,7 +39,7 @@ class IpValidation extends AbstractRequestValidation
      * @param Host $proxyHost
      * @param HttpClientInterface|null $client
      */
-    public function __construct(Host $proxyHost, HttpClientInterface $client = null)
+    public function __construct(Host $proxyHost, ?HttpClientInterface $client = null)
     {
         $this->proxyHost = $proxyHost;
 

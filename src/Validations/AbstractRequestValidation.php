@@ -50,7 +50,7 @@ abstract class AbstractRequestValidation
      * @param string $url
      * @param HttpClientInterface|null $client
      */
-    public function __construct(string $method, string $url, HttpClientInterface $client = null)
+    public function __construct(string $method, string $url, ?HttpClientInterface $client = null)
     {
         $this->client = $client ?? HttpClient::create();
         $this->method = $method;

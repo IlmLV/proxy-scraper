@@ -36,7 +36,7 @@ class AnonymityLevelValidation
      * @param Host $hostIp
      * @param HttpClientInterface|null $client
      */
-    public function __construct(Host $hostIp, HttpClientInterface $client = null)
+    public function __construct(Host $hostIp, ?HttpClientInterface $client = null)
     {
         $this->hostIp = $hostIp;
         $this->client = $client ?? HttpClient::create();

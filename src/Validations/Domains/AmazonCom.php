@@ -13,7 +13,7 @@ class AmazonCom extends AbstractRequestValidation
     const METHOD = 'GET';
     const URL = 'https://www.amazon.com/';
 
-    public function __construct(HttpClientInterface $client = null)
+    public function __construct(?HttpClientInterface $client = null)
     {
         return parent::__construct(self::METHOD, self::URL, $client);
     }

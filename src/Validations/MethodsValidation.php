@@ -25,7 +25,7 @@ class MethodsValidation
     public HeadersValidation $delete;
     public HeadersValidation $patch;
 
-    public function __construct(string $url, HttpClientInterface $client = null, array $requestMethods = null)
+    public function __construct(string $url, ?HttpClientInterface $client = null, ?array $requestMethods = null)
     {
         if ($requestMethods)
             $this->requestMethods = $requestMethods;

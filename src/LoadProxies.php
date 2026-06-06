@@ -27,9 +27,6 @@ class LoadProxies
         \IlmLV\ProxyScraper\Sources\FreeProxyListNet::class,
         \IlmLV\ProxyScraper\Sources\FreeProxyListNetAnonymousProxy::class,
         \IlmLV\ProxyScraper\Sources\FreeProxyListNetUkProxy::class,
-        \IlmLV\ProxyScraper\Sources\GimmeProxyCom::class,
-        \IlmLV\ProxyScraper\Sources\MultiproxyOrg::class,
-        \IlmLV\ProxyScraper\Sources\ProxyServerList24Top::class,
         \IlmLV\ProxyScraper\Sources\PubProxyCom::class,
         \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListHttp::class,
         \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListHttps::class,
@@ -47,7 +44,7 @@ class LoadProxies
 
     private array $errors = [];
 
-    public function __construct(array $scraperConfig = [], HttpClientInterface $httpClient = null)
+    public function __construct(array $scraperConfig = [], ?HttpClientInterface $httpClient = null)
     {
         $this->scraperConfig += $scraperConfig;
 
@@ -58,7 +55,7 @@ class LoadProxies
         $this->proxies = new ScrapedProxyList;
     }
 
-    public static function init(array $scraperConfig = [], HttpClientInterface $httpClient = null): LoadProxies
+    public static function init(array $scraperConfig = [], ?HttpClientInterface $httpClient = null): LoadProxies
     {
         return new self($scraperConfig, $httpClient);
     }

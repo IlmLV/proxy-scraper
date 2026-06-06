@@ -13,7 +13,7 @@ class ExampleCom extends AbstractRequestValidation
     const METHOD = 'GET';
     const URL = 'http://example.com/';
 
-    public function __construct(HttpClientInterface $client = null)
+    public function __construct(?HttpClientInterface $client = null)
     {
         return parent::__construct(self::METHOD, self::URL, $client);
     }

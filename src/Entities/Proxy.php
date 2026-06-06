@@ -39,7 +39,7 @@ final class Proxy
      * @param ?string $password
      * @throws InvalidArgumentException
      */
-    public function __construct(Protocol|string $mixed, Host $host = null, Port $port = null, string $username = null, string $password = null)
+    public function __construct(Protocol|string $mixed, ?Host $host = null, ?Port $port = null, ?string $username = null, ?string $password = null)
     {
         if ($mixed instanceof Protocol) {
             $this->protocol = $mixed;
