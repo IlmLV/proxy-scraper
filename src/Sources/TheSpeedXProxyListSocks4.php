@@ -11,7 +11,7 @@ final class TheSpeedXProxyListSocks4 extends TextListScraper implements ScraperI
 {
     protected string $url = 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks4.txt';
 
-    protected string $protocol = 'socks4';
+    protected ?string $protocol = 'socks4';
 
     const SCHEDULE = '0 * * * *';
 }

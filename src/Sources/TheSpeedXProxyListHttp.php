@@ -11,5 +11,7 @@ final class TheSpeedXProxyListHttp extends TextListScraper implements ScraperInt
 {
     protected string $url = 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt';
 
+    protected ?string $protocol = 'http';
+
     const SCHEDULE = '0 * * * *';
 }

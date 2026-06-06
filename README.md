@@ -12,16 +12,16 @@
 
 # Proxy Scraper and Validator
 
-Scrape free proxy lists from 20+ sources and individually validate proxy capabilities —
-anonymity level, latency, HTTP(S) method support and more. Supports **http / https /
-socks4 / socks5** proxies.
+Scrape free proxy lists from 39 live, tested sources and individually validate proxy
+capabilities — anonymity level, latency, HTTP(S) method support and more. Supports
+**http / https / socks4 / socks5** proxies.
 
 > [!WARNING]
 > Free public proxies are **highly** not recommended for sensitive data transfer.
 
 ## Why this library
 
-- **Batteries included** — 20+ real free-proxy sources work out of the box; add your own in a few lines.
+- **Batteries included** — 39 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in CI; add your own in a few lines.
 - **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
 - **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
 - **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
@@ -158,13 +158,21 @@ foreach ($proxies->errors() as $scraper => $exception) {
 
 ## Proxy scraper sources
 Currently implemented proxy sources:
+- [ALIILAPRO/Proxy](https://github.com/ALIILAPRO/Proxy) (http/socks4/socks5)
 - [blogspotproxy.blogspot.com](https://blogspotproxy.blogspot.com/)
 - [checkerproxy.net](https://checkerproxy.net)
 - [clarketm/proxy-list](https://github.com/clarketm/proxy-list/blob/master/proxy-list.txt)
 - [free-proxy-list.net](https://www.free-proxy-list.net)
 - [free-proxy-list.net/anonymous-proxy.html](https://free-proxy-list.net/anonymous-proxy.html)
 - [free-proxy-list.net/uk-proxy.html](https://free-proxy-list.net/uk-proxy.html)
+- [freeproxy.world](https://www.freeproxy.world/) (http/https/socks4/socks5)
+- [geonode.com](https://geonode.com/free-proxy-list) (http/https/socks4/socks5)
+- [hookzof/socks5_list](https://github.com/hookzof/socks5_list) (socks5)
+- [mmpx12/proxy-list](https://github.com/mmpx12/proxy-list) (http/socks4/socks5)
 - [monosans/proxy-list](https://github.com/monosans/proxy-list) (http)
+- [proxifly/free-proxy-list](https://github.com/proxifly/free-proxy-list) (http/https/socks4/socks5)
+- [proxy11.com](http://proxy11.com/free-proxy) (http)
+- [proxylistplus.com](https://list.proxylistplus.com/Fresh-HTTP-Proxy-List-1) (http)
 - [proxyscrape.com](https://proxyscrape.com/free-proxy-list) (http/socks4/socks5)
 - [pubproxy.com](http://pubproxy.com/)
 - [roosterkid/openproxylist](https://github.com/roosterkid/openproxylist) (https/socks4/socks5)
@@ -173,6 +181,7 @@ Currently implemented proxy sources:
 - [ShiftyTR/Proxy-List/socks4.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/socks4.txt)
 - [ShiftyTR/Proxy-List/socks5.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/socks5.txt)
 - [socks-proxy.net](https://www.socks-proxy.net)
+- [spys.me](https://spys.me/proxy.txt) (http)
 - [sslproxies.org](https://www.sslproxies.org)
 - [TheSpeedX/PROXY-List/http.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/http.txt)
 - [TheSpeedX/PROXY-List/socks4.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks4.txt)

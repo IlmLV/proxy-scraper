@@ -11,7 +11,7 @@ final class VakhovFreshProxyListSocks4 extends TextListScraper implements Scrape
 {
     protected string $url = 'https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/socks4.txt';
 
-    protected string $protocol = 'socks4';
+    protected ?string $protocol = 'socks4';
 
     const SCHEDULE = '0 * * * *';
 }

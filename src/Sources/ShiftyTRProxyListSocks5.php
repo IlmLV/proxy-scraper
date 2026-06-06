@@ -11,7 +11,7 @@ final class ShiftyTRProxyListSocks5 extends TextListScraper implements ScraperIn
 {
     protected string $url = 'https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks5.txt';
 
-    protected string $protocol = 'socks5';
+    protected ?string $protocol = 'socks5';
 
     const SCHEDULE = '0 * * * *';
 }

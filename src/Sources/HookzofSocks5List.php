@@ -7,9 +7,9 @@ namespace IlmLV\ProxyScraper\Sources;
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 
-final class ProxyScrapeComSocks5 extends TextListScraper implements ScraperInterface
+final class HookzofSocks5List extends TextListScraper implements ScraperInterface
 {
-    protected string $url = 'https://api.proxyscrape.com/v4/free-proxy-list/get?request=display_proxies&proxy_format=ipport&format=text&protocol=socks5';
+    protected string $url = 'https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt';
 
     protected ?string $protocol = 'socks5';
 

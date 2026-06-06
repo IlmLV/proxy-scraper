@@ -33,7 +33,11 @@ class SourceParsingTest extends TestCase
     public static function textListSourceProvider(): array
     {
         return [
+            'aliilapro http'    => [Sources\AliilaproProxyListHttp::class, 'http'],
+            'aliilapro socks4'  => [Sources\AliilaproProxyListSocks4::class, 'socks4'],
+            'aliilapro socks5'  => [Sources\AliilaproProxyListSocks5::class, 'socks5'],
             'clarketm'          => [Sources\ClarketmProxyList::class, 'http'],
+            'hookzof socks5'    => [Sources\HookzofSocks5List::class, 'socks5'],
             'monosans http'     => [Sources\MonosansProxyListHttp::class, 'http'],
             'proxyscrape http'  => [Sources\ProxyScrapeComHttp::class, 'http'],
             'proxyscrape socks4'=> [Sources\ProxyScrapeComSocks4::class, 'socks4'],
@@ -98,6 +102,86 @@ class SourceParsingTest extends TestCase
         $this->assertCount(2, $proxies);
         $this->assertSame('http://1.2.3.4:8080', (string) $proxies[0]);
         $this->assertSame('https://5.6.7.8:3128', (string) $proxies[1]);
+    }
+
+    public function testPrefixedListSourcePreservesPerLineProtocol(): void
+    {
+        // Lines already carry the scheme; the protocol is read per line, not prepended.
+        $scraper = new Sources\ProxiflyProxyList(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // 3 scheme-prefixed lines parse; the garbage line and the scheme-less line are skipped
+        $this->assertSame(
+            ['http://1.2.3.4:8080', 'socks5://5.6.7.8:1080', 'socks4://9.10.11.12:1081'],
+            $proxies
+        );
+    }
+
+    public function testGeonodeJsonListYieldsOneProxyPerProtocol(): void
+    {
+        $scraper = new Sources\GeonodeProxyList(MockClientFactory::fromFixture('Sources/geonode.json'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // the third entry lists two protocols, so it expands into two proxies
+        $this->assertSame(
+            ['http://1.2.3.4:8080', 'socks5://5.6.7.8:1080', 'http://9.10.11.12:3128', 'https://9.10.11.12:3128'],
+            $proxies
+        );
+    }
+
+    public function testSpysMeWhitespaceListSkipsBanner(): void
+    {
+        $scraper = new Sources\SpysMeProxyList(MockClientFactory::fromFixture('Sources/spys-me.txt'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // banner/legend lines and the malformed trailing line are skipped; ip:port is the first token
+        $this->assertSame(['http://1.2.3.4:8080', 'http://5.6.7.8:3128'], $proxies);
+    }
+
+    public function testProxyListPlusHttpTable(): void
+    {
+        $scraper = new Sources\ProxyListPlusHttp(MockClientFactory::fromFixture('Sources/proxylistplus.html'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // IP is the 2nd cell (1st is a flag), port the 3rd; the trailing empty row is skipped
+        $this->assertSame(['http://1.2.3.4:8080', 'http://5.6.7.8:3128'], $proxies);
+    }
+
+    public function testFreeProxyWorldReadsProtocolPerRow(): void
+    {
+        $scraper = new Sources\FreeProxyWorld(MockClientFactory::fromFixture('Sources/freeproxy-world.html'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // protocol comes from the "Type" column (index 5), so the two rows differ
+        $this->assertSame(['http://1.2.3.4:8080', 'socks5://5.6.7.8:1080'], $proxies);
+    }
+
+    public function testProxy11Table(): void
+    {
+        $scraper = new Sources\Proxy11(MockClientFactory::fromFixture('Sources/proxy11.html'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // IP is wrapped in <code>; text() still extracts it
+        $this->assertSame(['http://1.2.3.4:8080', 'http://5.6.7.8:3128'], $proxies);
+    }
+
+    public function testMmpx12SkipsCorruptPrefixedLine(): void
+    {
+        $scraper = new Sources\Mmpx12ProxyList(MockClientFactory::fromFixture('Sources/mmpx12.txt'));
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        // the "error code: 502" line has an extra colon and fails to parse, so it is dropped
+        $this->assertSame(
+            ['http://1.2.3.4:8080', 'socks4://5.6.7.8:1080', 'socks5://9.10.11.12:1081'],
+            $proxies
+        );
     }
 
     public function testBlogspotXmlFeed(): void
