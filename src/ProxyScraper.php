@@ -44,7 +44,7 @@ class ProxyScraper
         foreach ($options as $key => $value) {
             $methodName = snakeToCamel('set_'. $key);
             if (method_exists($this, $methodName)) {
-                call_user_func(array($this, $methodName), $value);
+                $this->{$methodName}($value);
 
                 unset($options[$key]);
             }

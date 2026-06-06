@@ -154,6 +154,9 @@ class LoadProxies
         return $this->all();
     }
 
+    /**
+     * @param class-string<ProxyScraper&ScraperInterface> $scraper
+     */
     public function run(string $scraper): void
     {
         $config = $this->scraperConfig[$scraper] ?? [];

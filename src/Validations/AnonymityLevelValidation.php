@@ -103,7 +103,7 @@ class AnonymityLevelValidation
                             return true;
                         }
                         foreach ($proxyHeaderPrefixes as $prefix) {
-                            if (strpos($attr, $prefix) !== false) {
+                            if (strpos((string)$attr, $prefix) !== false) {
                                 return true;
                             }
                         }
