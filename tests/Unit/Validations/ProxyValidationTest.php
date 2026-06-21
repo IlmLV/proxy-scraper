@@ -6,6 +6,7 @@ use IlmLV\ProxyScraper\Entities\ResponseError;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Validations\DomainsValidation;
 use IlmLV\ProxyScraper\Validations\IpValidation;
+use IlmLV\ProxyScraper\Validations\IpVersionValidation;
 use IlmLV\ProxyScraper\Validations\MethodsValidation;
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -31,6 +32,10 @@ class ProxyValidationTest extends TestCase
         $this->assertInstanceOf(DomainsValidation::class, $validation->domains);
         $this->assertTrue($validation->domains->{'example.com'}->valid);
 
+        $this->assertInstanceOf(IpVersionValidation::class, $validation->ipVersion);
+        $this->assertTrue($validation->ipVersion->ipv4->valid);
+        $this->assertTrue($validation->ipVersion->ipv6->valid);
+
         // timestamp is non-deterministic, assert only its type
         $this->assertInstanceOf(\DateTimeInterface::class, $validation->validatedAt);
     }
@@ -52,6 +57,7 @@ class ProxyValidationTest extends TestCase
         $this->assertNull($validation->http);
         $this->assertNull($validation->https);
         $this->assertNull($validation->domains);
+        $this->assertNull($validation->ipVersion);
     }
 
     /**
@@ -61,6 +67,7 @@ class ProxyValidationTest extends TestCase
      *  - whoami otherwise      -> echo {method}, so anonymity reads "elite" and
      *                             every MethodsValidation request validates
      *  - ip.serviss.it         -> reports the proxy host IP (matches 1.2.3.4)
+     *  - ipv4/ipv6.serviss.it  -> reachable egress, reports an IP
      *  - domain checks         -> the expected per-domain landing pages
      */
     private static function happyPathClient(): \Symfony\Component\HttpClient\MockHttpClient
@@ -74,6 +81,9 @@ class ProxyValidationTest extends TestCase
                     return new MockResponse('', ['http_code' => 200]);
                 }
                 return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
+            }
+            if (str_contains($url, 'ipv4.serviss.it') || str_contains($url, 'ipv6.serviss.it')) {
+                return new MockResponse(json_encode(['ip' => '1.2.3.4']), ['http_code' => 200]);
             }
             if (str_contains($url, 'ip.serviss.it')) {
                 return new MockResponse(MockClientFactory::load('Validations/ip-match.json'));

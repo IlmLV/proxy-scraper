@@ -232,6 +232,7 @@ This library can also be used for proxy capability validation:
 - various ***request methods***: GET, POST, PUT, OPTIONS, HEAD, DELETE, PATCH
 - huge amount of ***request headers*** if they are not modified by proxy - tested in each request method
 - multiple public ***domains*** (amazon.com, craigslist.org, example.com, google.com, ss.com)
+- ***IP version*** egress capability — whether the proxy can route traffic to IPv4-only and/or IPv6-only destinations.
 - average ***latency*** calculation
 
 ### Validate a proxy
@@ -422,6 +423,18 @@ The validation result looks like:
     "ss.com": {
       "valid": true,
       "latency": 0.44051098823547
+    }
+  },
+  "ipVersion": {
+    "ipv4": {
+      "valid": true,
+      "latency": 0.31204795837402,
+      "ip": "203.0.113.4"
+    },
+    "ipv6": {
+      "valid": false,
+      "latency": null,
+      "ip": null
     }
   },
   "validatedAt": {

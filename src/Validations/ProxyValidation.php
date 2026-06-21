@@ -29,6 +29,7 @@ class ProxyValidation
     public ?MethodsValidation $http = null;
     public ?MethodsValidation $https = null;
     public ?DomainsValidation $domains = null;
+    public ?IpVersionValidation $ipVersion = null;
 
     public \DateTimeInterface $validatedAt;
 
@@ -62,6 +63,7 @@ class ProxyValidation
             $this->http = new MethodsValidation($this->httpUrl, $this->client);
             $this->https = new MethodsValidation($this->httpsUrl, $this->client);
             $this->domains = new DomainsValidation($this->client);
+            $this->ipVersion = new IpVersionValidation($this->client);
         }
         catch (\Throwable $e) {
             $this->valid = false;
