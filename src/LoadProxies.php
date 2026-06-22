@@ -123,6 +123,12 @@ class LoadProxies
         return $this->errors;
     }
 
+    /**
+     * Run every registered scraper now and return $this for result access
+     * (get()/stats()/errors()). Running is idempotent — each scraper's result
+     * replaces any previous one, so calling this more than once does not
+     * accumulate duplicates.
+     */
     public function all(): self
     {
         foreach ($this->scrapers as $scraper) {
@@ -131,6 +137,10 @@ class LoadProxies
         return $this;
     }
 
+    /**
+     * Run only the registered scrapers whose cron SCHEDULE is due now, then
+     * return $this for result access.
+     */
     public function scheduled(): self
     {
         foreach ($this->scrapers as $scraper) {
@@ -142,6 +152,9 @@ class LoadProxies
     }
 
     /**
+     * Builder: register one or more extra scrapers (deduplicated) without running
+     * anything. Follow with all()/scheduled() to execute.
+     *
      * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
      */
     public function add(array|string $scrapers): self
@@ -151,6 +164,9 @@ class LoadProxies
     }
 
     /**
+     * Restrict the registered set to exactly the given scraper(s) and run them
+     * immediately, returning $this for result access.
+     *
      * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
      */
     public function only(array|string $scrapers): self

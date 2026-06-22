@@ -9,14 +9,18 @@ class ScrapedProxyList
     /**
      * @var array<string, Proxy[]>
      */
-    private array $array = [];
+    private array $proxiesByScraper = [];
 
     /**
+     * Store the proxies a scraper produced, replacing any previous result for
+     * that scraper. Keying by source makes re-running a scraper idempotent
+     * instead of appending duplicates.
+     *
      * @param Proxy[] $proxies
      */
     public function push(string $scraper, array $proxies): void
     {
-        $this->array[$scraper] = array_merge(($this->array[$scraper] ?? []), $proxies);
+        $this->proxiesByScraper[$scraper] = $proxies;
     }
 
     /**
@@ -24,7 +28,11 @@ class ScrapedProxyList
      */
     public function get(): array
     {
-        return array_merge(...array_values($this->array));
+        if ($this->proxiesByScraper === []) {
+            return [];
+        }
+
+        return array_merge(...array_values($this->proxiesByScraper));
     }
 
     /**
@@ -35,9 +43,9 @@ class ScrapedProxyList
         return array_map(function ($proxies) {
             $stats = [];
             foreach ($proxies as $proxy) {
-                $stats[(string)$proxy->protocol] = ($stats[(string)$proxy->protocol] ?? 0) + 1;
+                $stats[$proxy->protocol->value] = ($stats[$proxy->protocol->value] ?? 0) + 1;
             }
             return $stats;
-        }, $this->array);
+        }, $this->proxiesByScraper);
     }
 }

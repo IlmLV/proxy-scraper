@@ -11,11 +11,18 @@ use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 
+/**
+ * Base for a source whose endpoint returns a single proxy as one JSON object
+ * (e.g. {"ip": ..., "port": ..., "protocol": ...}). For an endpoint that returns
+ * an array of proxies use {@see JsonListScraper} instead.
+ *
+ * No bundled source currently extends this — it is a supported extension point.
+ * Because exactly one proxy is expected, a malformed payload throws rather than
+ * being skipped (there is nothing else in the response to fall back to).
+ */
 abstract class JsonScraper extends ProxyScraper implements ScraperInterface
 {
-    protected string $hostProperty = 'ip';
-    protected string $portProperty = 'port';
-    protected string $protocolProperty = 'protocol';
+    use JsonFieldMapping;
 
     /**
      * @return Generator<int, Proxy>
@@ -24,11 +31,7 @@ abstract class JsonScraper extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $response = $this->httpClient->request('GET', $this->getUrl())->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetch();
 
         yield $this->extractProxy($response);
     }

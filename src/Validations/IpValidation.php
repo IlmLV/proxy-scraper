@@ -16,9 +16,9 @@ class IpValidation extends AbstractRequestValidation
 
     protected bool $useBenchmark = false;
 
-    public string $countryIsoCode;
+    public ?string $countryIsoCode = null;
 
-    public string $organisation;
+    public ?string $organisation = null;
 
     public function __construct(Host $proxyHost, ?HttpClientInterface $client = null)
     {
@@ -45,7 +45,7 @@ class IpValidation extends AbstractRequestValidation
             $this->countryIsoCode = $countryIsoCode;
             $this->organisation = $organisation;
 
-            return $response->getStatusCode() === 200 && $ip === $this->proxyHost->ip;
+            return $response->getStatusCode() === 200 && $ip === $this->proxyHost->ip();
         } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return false;

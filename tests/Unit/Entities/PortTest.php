@@ -20,6 +20,11 @@ class PortTest extends TestCase
         return [[1], [80], [8080], [65535]];
     }
 
+    public function testExposesTypedValue(): void
+    {
+        $this->assertSame(8080, (new Port('8080'))->value);
+    }
+
     #[DataProvider('invalidProvider')]
     public function testOutOfRangePortsThrow(int $port): void
     {

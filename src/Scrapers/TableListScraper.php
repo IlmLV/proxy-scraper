@@ -12,6 +12,15 @@ use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 use Symfony\Component\DomCrawler\Crawler as Dom;
 
+/**
+ * Base for sources that publish proxies in an HTML table.
+ *
+ * Config a source may override:
+ * - $rowPath              CSS selector for the proxy rows (default "table tbody tr").
+ * - $colAddress/$colPort  zero-based column indices for host and port.
+ * - $protocol             fixed protocol for every row; when null it is read from
+ *                         column $colProtocol instead.
+ */
 abstract class TableListScraper extends ProxyScraper implements ScraperInterface
 {
     protected ?string $protocol = null;
@@ -26,8 +35,9 @@ abstract class TableListScraper extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
+        $html = $this->fetch();
+
         try {
-            $html = $this->httpClient->request('GET', $this->url)->getContent();
             $rows = (new Dom($html))->filter($this->rowPath);
         } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);

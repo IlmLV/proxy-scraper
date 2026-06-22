@@ -14,6 +14,7 @@ class ResponseErrorTest extends TestCase
 
         $error = new ResponseError($exception);
 
+        $this->assertSame(\RuntimeException::class, $error->type);
         $this->assertSame('boom', $error->message);
         $this->assertSame(__FILE__, $error->file);
         $this->assertSame($line, $error->line);

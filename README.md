@@ -221,6 +221,13 @@ foreach ($proxies->get() as $proxy) {
 }
 ```
 
+Bundled sources live in `src/Sources/`, one class per source, named
+`<Provider>[Variant]<Protocol>` (e.g. `FreeProxyListNet`, `ShiftyTRProxyListSocks5`).
+A source only sets `$url`, an optional `$protocol`, the format-specific knobs of its
+scraper base (see each `Scrapers/*` class docblock), and a `SCHEDULE`. Unlike a custom
+source, a bundled one is registered in `LoadProxies::$scrapers` so it runs under
+`all()`/`scheduled()`.
+
 ## Proxy validation
 This library can also be used for proxy capability validation:
 - ***anonymity level***: 
@@ -381,6 +388,7 @@ line}` object when it failed (`line` is an integer):
       "valid": false,
       "latency": null,
       "error": {
+        "type": "Symfony\\Component\\HttpClient\\Exception\\TransportException",
         "message": "Connection to proxy closed for \"http://whoami.serviss.it/?format=json\".",
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
         "line": 56
@@ -424,6 +432,7 @@ line}` object when it failed (`line` is an integer):
       "valid": false,
       "latency": null,
       "error": {
+        "type": "Symfony\\Component\\HttpClient\\Exception\\TransportException",
         "message": "Connection to proxy closed for \"https://whoami.serviss.it/?format=json\".",
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
         "line": 56

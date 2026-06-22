@@ -11,12 +11,19 @@ use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
 
+/**
+ * Base for sources whose endpoint returns a JSON array of proxy objects.
+ *
+ * Config a source may override:
+ * - $listPath             key under which the array lives in the response; null
+ *                         when the response body is itself the array.
+ * - JSON field names      via {@see JsonFieldMapping} ($hostProperty etc.).
+ */
 abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
 {
+    use JsonFieldMapping;
+
     protected ?string $listPath = null;
-    protected string $hostProperty = 'ip';
-    protected string $portProperty = 'port';
-    protected string $protocolProperty = 'protocol';
 
     /**
      * @return Generator<int, Proxy>
@@ -24,11 +31,7 @@ abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $response = $this->httpClient->request('GET', $this->getUrl())->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetch();
 
         $json = json_decode($response, true);
         $list = $this->listPath

@@ -11,7 +11,7 @@ final class Port
     private const MIN_PORT_NUMBER = 1;
     private const MAX_PORT_NUMBER = 65535;
 
-    private int $port;
+    public readonly int $value;
 
     /**
      * @param int|string $port Accepts a numeric string (as produced by proxy-string
@@ -31,11 +31,11 @@ final class Port
         if (self::MAX_PORT_NUMBER < $port) {
             throw new InvalidArgumentException('Bad port number: ' . $port);
         }
-        $this->port = $port;
+        $this->value = $port;
     }
 
     public function __toString(): string
     {
-        return (string) $this->port;
+        return (string) $this->value;
     }
 }

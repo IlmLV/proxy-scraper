@@ -8,13 +8,18 @@ use PHPUnit\Framework\TestCase;
 
 class ScrapedProxyListTest extends TestCase
 {
-    public function testPushAccumulatesPerScraper(): void
+    public function testPushReplacesPreviousResultForSameScraper(): void
     {
         $list = new ScrapedProxyList();
         $list->push('ScraperA', [new Proxy('http://1.2.3.4:8080')]);
+        // Re-pushing the same scraper replaces its result rather than appending,
+        // so re-running a source does not accumulate duplicates.
         $list->push('ScraperA', [new Proxy('http://5.6.7.8:3128')]);
 
-        $this->assertCount(2, $list->get());
+        $result = $list->get();
+
+        $this->assertCount(1, $result);
+        $this->assertSame('5.6.7.8', (string) $result[0]->host);
     }
 
     public function testGetMergesProxiesFromMultipleScrapers(): void

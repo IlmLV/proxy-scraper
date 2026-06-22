@@ -30,4 +30,20 @@ class IpValidationTest extends TestCase
 
         $this->assertFalse($validation->valid);
     }
+
+    public function testResultPropertiesAreNullWhenRequestFails(): void
+    {
+        // Reading the result/latency properties on a failed validation must not
+        // throw "must not be accessed before initialization"; they read as null.
+        $validation = new IpValidation(
+            new Host('1.2.3.4'),
+            MockClientFactory::fromString('', 500)
+        );
+
+        $this->assertFalse($validation->valid);
+        $this->assertNull($validation->countryIsoCode);
+        $this->assertNull($validation->organisation);
+        $this->assertNull($validation->latency);
+        $this->assertNotNull($validation->error);
+    }
 }

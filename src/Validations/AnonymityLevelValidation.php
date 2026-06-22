@@ -18,7 +18,7 @@ class AnonymityLevelValidation
 
     private Host $hostIp;
 
-    public ?string $anonymityLevel;
+    public ?string $anonymityLevel = null;
 
     public ?ResponseError $error = null;
 

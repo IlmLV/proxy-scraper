@@ -15,7 +15,7 @@ class HostTest extends TestCase
 
         $this->assertSame('1.2.3.4', $host->host);
         // IP literals never trigger a real DNS lookup.
-        $this->assertSame('1.2.3.4', $host->ip);
+        $this->assertSame('1.2.3.4', $host->ip());
         $this->assertSame('1.2.3.4', (string) $host);
     }
 
@@ -24,7 +24,17 @@ class HostTest extends TestCase
         $host = new Host('2001:db8::1');
 
         $this->assertSame('2001:db8::1', $host->host);
-        $this->assertSame('2001:db8::1', $host->ip);
+        $this->assertSame('2001:db8::1', $host->ip());
+    }
+
+    public function testUnresolvableDomainReturnsNullIp(): void
+    {
+        // ".invalid" is reserved (RFC 2606) and never resolves, so ip() reports
+        // null instead of echoing the domain back as if it were an address.
+        $host = new Host('definitely-not-real.invalid');
+
+        $this->assertSame('definitely-not-real.invalid', $host->host);
+        $this->assertNull($host->ip());
     }
 
     #[DataProvider('invalidProvider')]

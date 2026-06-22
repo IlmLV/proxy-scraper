@@ -8,8 +8,24 @@ use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\Port;
 use IlmLV\ProxyScraper\Entities\Protocol;
 use IlmLV\ProxyScraper\Entities\Proxy;
+use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
+/**
+ * Base for every scraper. Concrete scrapers (Scrapers\*) implement get(); the
+ * bundled sources (Sources\*) extend one of those and configure it by overriding
+ * protected properties.
+ *
+ * Contract for subclasses:
+ * - string $url           required — the source endpoint; may contain sprintf
+ *                          placeholders filled via getUrl(...).
+ * - const SCHEDULE        cron expression controlling LoadProxies::scheduled().
+ * - fetch()               GET $url (with options applied) as a string, or throw.
+ * - makeProxy()           build a validated Proxy from raw ip/port/protocol.
+ *
+ * Per-format scrapers add their own config properties (e.g. $protocol, $rowPath,
+ * column indices, JSON field names) — see each Scrapers\* class.
+ */
 abstract class ProxyScraper
 {
     protected string $url;
@@ -40,7 +56,7 @@ abstract class ProxyScraper
     private function loadOptions(array &$options = []): void
     {
         foreach ($options as $key => $value) {
-            $methodName = snakeToCamel('set_'. $key);
+            $methodName = Str::snakeToCamel('set_'. $key);
             if (method_exists($this, $methodName)) {
                 $this->{$methodName}($value);
 
@@ -75,6 +91,21 @@ abstract class ProxyScraper
         }
 
         return $url;
+    }
+
+    /**
+     * GET the built source URL and return the response body, translating any
+     * transport/HTTP failure into a ScraperException.
+     *
+     * @throws ScraperException
+     */
+    protected function fetch(): string
+    {
+        try {
+            return $this->httpClient->request('GET', $this->getUrl())->getContent();
+        } catch (\Throwable $e) {
+            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
+        }
     }
 
     /**

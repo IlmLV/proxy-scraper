@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
+use IlmLV\ProxyScraper\Str;
 
 class HeadersValidation extends AbstractRequestValidation
 {
@@ -90,7 +91,7 @@ class HeadersValidation extends AbstractRequestValidation
                 }
 
                 foreach ($requestHeaders as $key => $value) {
-                    $responseKey = kebabToSnake(strtolower($key));
+                    $responseKey = Str::kebabToSnake(strtolower($key));
                     $this->headers[$key] = isset($responseAttr[$responseKey]) ? ($responseAttr[$responseKey] === $value ? true : false) : false;
                 }
 

@@ -20,6 +20,11 @@ class ProtocolTest extends TestCase
         return array_map(fn ($p) => [$p], Protocol::ALLOWED_PROTOCOLS);
     }
 
+    public function testExposesValue(): void
+    {
+        $this->assertSame('socks5', (new Protocol('socks5'))->value);
+    }
+
     #[DataProvider('invalidProvider')]
     public function testUnknownProtocolsThrow(string $protocol): void
     {

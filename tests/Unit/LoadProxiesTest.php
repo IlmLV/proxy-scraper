@@ -58,6 +58,22 @@ class LoadProxiesTest extends TestCase
         $this->assertSame([], $proxies->errors());
     }
 
+    public function testReRunningASourceIsIdempotent(): void
+    {
+        $client = MockClientFactory::router(
+            fn (): MockResponse => new MockResponse(MockClientFactory::load('Sources/table-http.html'))
+        );
+
+        $loader = LoadProxies::init([], $client)->only(FreeProxyListNet::class);
+        $this->assertCount(2, $loader->get());
+
+        // Running again replaces each source's result instead of appending it,
+        // so proxies are not accumulated as duplicates.
+        $loader->all();
+        $this->assertCount(2, $loader->get());
+        $this->assertSame([FreeProxyListNet::class => ['http' => 2]], $loader->stats());
+    }
+
     public function testSchedulerIsDueForWildcardSchedule(): void
     {
         $this->assertTrue(LoadProxies::schedulerIsDue('* * * * *'));

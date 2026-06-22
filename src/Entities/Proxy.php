@@ -49,52 +49,89 @@ final class Proxy
 
     /**
      * Parse a "protocol://[user:pass@]host:port" string into its components.
+     * IPv6 hosts must be bracketed, e.g. "http://[::1]:8080".
      *
      * @return array{protocol: Protocol, host: Host, port: Port, username: ?string, password: ?string}
      * @throws InvalidArgumentException
      */
     private static function parse(string $proxy): array
     {
-        $protocolIpPort = explode('://', $proxy);
-        if (count($protocolIpPort) !== 2) {
+        $protocolAddress = explode('://', $proxy, 2);
+        if (count($protocolAddress) !== 2) {
             throw new InvalidArgumentException('Bad formatted proxy string, no protocol found');
         }
+        [$protocol, $remainder] = $protocolAddress;
 
         $username = null;
         $password = null;
 
-        $authAddress = explode('@', $protocolIpPort[1]);
-        if (count($authAddress) === 2) {
-            $address = $authAddress[1];
+        // Credentials, when present, sit before the last "@" (an unencoded "@" may
+        // appear in the password); the password itself may contain ":", so the
+        // credentials are split on the first ":" only.
+        $atPosition = strrpos($remainder, '@');
+        if ($atPosition !== false) {
+            $credentials = substr($remainder, 0, $atPosition);
+            $address = substr($remainder, $atPosition + 1);
 
-            $usernamePassword = explode(':', $authAddress[0]);
-            if (count($usernamePassword) !== 2) {
+            $colonPosition = strpos($credentials, ':');
+            if ($colonPosition === false) {
                 throw new InvalidArgumentException('Bad formatted proxy string, invalid credentials format');
             }
-            $username = $usernamePassword[0];
-            $password = $usernamePassword[1];
+            $username = substr($credentials, 0, $colonPosition);
+            $password = substr($credentials, $colonPosition + 1);
         } else {
-            $address = $protocolIpPort[1];
+            $address = $remainder;
         }
 
-        $ipPort = explode(':', $address);
-        if (count($ipPort) !== 2) {
-            throw new InvalidArgumentException('Bad formatted proxy string, no port found');
-        }
+        [$host, $port] = self::splitHostPort($address);
 
         return [
-            'protocol' => new Protocol($protocolIpPort[0]),
-            'host' => new Host($ipPort[0]),
-            'port' => new Port($ipPort[1]),
+            'protocol' => new Protocol($protocol),
+            'host' => new Host($host),
+            'port' => new Port($port),
             'username' => $username,
             'password' => $password,
         ];
     }
 
+    /**
+     * Split a "host:port" address into its parts, supporting bracketed IPv6
+     * literals ("[::1]:8080"). The host is returned without brackets.
+     *
+     * @return array{0: string, 1: string}
+     * @throws InvalidArgumentException
+     */
+    private static function splitHostPort(string $address): array
+    {
+        if (str_starts_with($address, '[')) {
+            $closing = strpos($address, ']');
+            if ($closing === false || ($address[$closing + 1] ?? '') !== ':') {
+                throw new InvalidArgumentException('Bad formatted proxy string, no port found');
+            }
+
+            return [substr($address, 1, $closing - 1), substr($address, $closing + 2)];
+        }
+
+        // The port follows the last ":"; reject a missing port or an unbracketed
+        // IPv6 literal (more than one colon), which is ambiguous.
+        $colonPosition = strrpos($address, ':');
+        if ($colonPosition === false || strpos($address, ':') !== $colonPosition) {
+            throw new InvalidArgumentException('Bad formatted proxy string, no port found');
+        }
+
+        return [substr($address, 0, $colonPosition), substr($address, $colonPosition + 1)];
+    }
+
     public function __toString(): string
     {
+        $host = (string) $this->host;
+        // Re-bracket IPv6 literals so the result round-trips back through parse().
+        if (str_contains($host, ':')) {
+            $host = '[' . $host . ']';
+        }
+
         return $this->protocol . '://'
             . ($this->username ? $this->username . ($this->password ? ':' . $this->password : '') . '@' : '')
-            . $this->host . ':' . $this->port;
+            . $host . ':' . $this->port;
     }
 }

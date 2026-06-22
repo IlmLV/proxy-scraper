@@ -2,15 +2,16 @@
 
 namespace IlmLV\ProxyScraper\Tests\Unit;
 
+use IlmLV\ProxyScraper\Str;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
-class HelpersTest extends TestCase
+class StrTest extends TestCase
 {
     #[DataProvider('snakeToCamelProvider')]
     public function testSnakeToCamel(string $input, string $expected): void
     {
-        $this->assertSame($expected, snakeToCamel($input));
+        $this->assertSame($expected, Str::snakeToCamel($input));
     }
 
     public static function snakeToCamelProvider(): array
@@ -25,7 +26,7 @@ class HelpersTest extends TestCase
     #[DataProvider('kebabToSnakeProvider')]
     public function testKebabToSnake(string $input, string $expected): void
     {
-        $this->assertSame($expected, kebabToSnake($input));
+        $this->assertSame($expected, Str::kebabToSnake($input));
     }
 
     public static function kebabToSnakeProvider(): array

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use IlmLV\ProxyScraper\Benchmark;
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Helper;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
@@ -18,9 +18,9 @@ abstract class AbstractRequestValidation
 
     protected string $url;
 
-    public bool $valid;
+    public bool $valid = false;
 
-    public float|null $latency;
+    public ?float $latency = null;
 
     public ?ResponseError $error = null;
 
@@ -51,7 +51,7 @@ abstract class AbstractRequestValidation
             return $response;
         };
 
-        return $this->useBenchmark ? Helper::benchmark($this->latency, $request) : $request();
+        return $this->useBenchmark ? Benchmark::measure($this->latency, $request) : $request();
     }
 
 }

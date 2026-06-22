@@ -15,21 +15,21 @@ final class Protocol
         'socks5',
     ];
 
-    private string $protocol;
+    public readonly string $value;
 
     /**
      * @throws InvalidArgumentException
      */
     public function __construct(string $protocol)
     {
-        if (!in_array($protocol, self::ALLOWED_PROTOCOLS)) {
+        if (!in_array($protocol, self::ALLOWED_PROTOCOLS, true)) {
             throw new InvalidArgumentException('Unknown protocol: ' . $protocol);
         }
-        $this->protocol = $protocol;
+        $this->value = $protocol;
     }
 
     public function __toString(): string
     {
-        return $this->protocol;
+        return $this->value;
     }
 }
