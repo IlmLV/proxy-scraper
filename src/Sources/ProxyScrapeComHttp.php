@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
 final class ProxyScrapeComHttp extends TextListScraper implements ScraperInterface
 {
@@ -13,5 +13,5 @@ final class ProxyScrapeComHttp extends TextListScraper implements ScraperInterfa
 
     protected ?string $protocol = 'http';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 }

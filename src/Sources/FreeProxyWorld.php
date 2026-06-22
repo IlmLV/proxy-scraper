@@ -21,5 +21,5 @@ final class FreeProxyWorld extends TableListScraper implements ScraperInterface
     protected int $colPort = 1;
     protected int $colProtocol = 5;
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 }

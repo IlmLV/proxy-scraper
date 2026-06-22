@@ -53,10 +53,10 @@ class ProxyValidation
             'verify_peer' => false,
             'verify_host' => false,
             'headers' => [
-                'Accept-Language'=>'en-US,en;q=0.5',
-                'User-Agent' => new RandomUserAgent,
+                'Accept-Language' => 'en-US,en;q=0.5',
+                'User-Agent' => new RandomUserAgent(),
             ],
-            'proxy' => $this->proxy
+            'proxy' => $this->proxy,
         ]);
 
         $this->validate();
@@ -66,14 +66,13 @@ class ProxyValidation
     {
         try {
             $this->validatedAt = new \DateTime();
-            $this->anonymityLevel = (string) new AnonymityLevelValidation($this->realIp(), $this->client);
+            $this->anonymityLevel = (new AnonymityLevelValidation($this->realIp(), $this->client))->anonymityLevel;
             $this->ip = new IpValidation($this->proxy->host, $this->client);
             $this->http = new MethodsValidation($this->httpUrl, $this->client);
             $this->https = new MethodsValidation($this->httpsUrl, $this->client);
             $this->domains = new DomainsValidation($this->client, $this->domainValidators);
             $this->ipVersion = new IpVersionValidation($this->client);
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->valid = false;
             $this->error = new ResponseError($e);
         }
@@ -82,7 +81,7 @@ class ProxyValidation
     private function realIp(): Host
     {
         $response = $this->client->request('GET', $this->httpUrl, [
-            'proxy' => false
+            'proxy' => false,
         ]);
 
         $body = json_decode($response->getContent(), true);

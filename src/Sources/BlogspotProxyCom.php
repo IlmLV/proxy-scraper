@@ -18,10 +18,9 @@ final class BlogspotProxyCom extends ProxyScraper implements ScraperInterface
 
     protected ?string $protocol = 'http';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 
     /**
-     * @return Generator
      * @throws ScraperException
      */
     public function get(): Generator

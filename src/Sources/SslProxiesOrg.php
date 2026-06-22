@@ -16,5 +16,5 @@ final class SslProxiesOrg extends TableListScraper implements ScraperInterface
     protected int $colAddress = 0;
     protected int $colPort = 1;
 
-    const SCHEDULE = '*/10 * * * *';
+    public const SCHEDULE = '*/10 * * * *';
 }

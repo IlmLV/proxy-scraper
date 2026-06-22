@@ -2,8 +2,8 @@
 
 namespace IlmLV\ProxyScraper\Tests\Support;
 
-use IlmLV\ProxyScraper\Scrapers\JsonListScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\JsonListScraper;
 
 /**
  * JSON list source with the root array as the list (listPath = null),

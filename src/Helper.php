@@ -8,7 +8,6 @@ class Helper
 {
     /**
      * @template T
-     * @param float|null $latency
      * @param callable(): T $request
      * @return T
      */

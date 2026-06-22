@@ -21,23 +21,11 @@ class EgressValidation extends AbstractRequestValidation
      */
     public ?string $ip = null;
 
-    /**
-     * @var ResponseError
-     */
-    public ResponseError $error;
-
-    /**
-     * @param string $url
-     * @param HttpClientInterface|null $client
-     */
     public function __construct(string $url, ?HttpClientInterface $client = null)
     {
         parent::__construct('GET', $url, $client);
     }
 
-    /**
-     * @return bool
-     */
     public function validate(): bool
     {
         try {
@@ -48,8 +36,7 @@ class EgressValidation extends AbstractRequestValidation
             $this->ip = is_string($ip) ? $ip : null;
 
             return $response->getStatusCode() === 200 && is_string($ip);
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return false;
         }

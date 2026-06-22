@@ -11,9 +11,6 @@ final class Port
     private const MIN_PORT_NUMBER = 1;
     private const MAX_PORT_NUMBER = 65535;
 
-    /**
-     * @var int
-     */
     private int $port;
 
     /**
@@ -37,9 +34,6 @@ final class Port
         $this->port = $port;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return (string) $this->port;

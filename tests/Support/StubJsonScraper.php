@@ -2,8 +2,8 @@
 
 namespace IlmLV\ProxyScraper\Tests\Support;
 
-use IlmLV\ProxyScraper\Scrapers\JsonScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\JsonScraper;
 
 /**
  * Minimal single-object JSON source (no live source uses JsonScraper

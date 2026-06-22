@@ -4,9 +4,25 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use JsonSerializable;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class MethodsValidation
+/**
+ * Runs a {@see HeadersValidation} per HTTP method and exposes each result as a
+ * read-only property named after the lowercased method (e.g. `$methods->get`).
+ * Results are stored in a keyed array rather than fixed typed properties so an
+ * arbitrary $requestMethods list can be supplied without creating dynamic
+ * properties or leaving declared ones uninitialised.
+ *
+ * @property-read HeadersValidation|null $get
+ * @property-read HeadersValidation|null $post
+ * @property-read HeadersValidation|null $put
+ * @property-read HeadersValidation|null $options
+ * @property-read HeadersValidation|null $head
+ * @property-read HeadersValidation|null $delete
+ * @property-read HeadersValidation|null $patch
+ */
+class MethodsValidation implements JsonSerializable
 {
     /**
      * @var string[]
@@ -21,33 +37,56 @@ class MethodsValidation
         'PATCH',
     ];
 
-    public ?float $latency;
-    public HeadersValidation $get;
-    public HeadersValidation $post;
-    public HeadersValidation $put;
-    public HeadersValidation $options;
-    public HeadersValidation $head;
-    public HeadersValidation $delete;
-    public HeadersValidation $patch;
+    /**
+     * @var array<string, HeadersValidation> Keyed by lowercased method name.
+     */
+    private array $methods = [];
+
+    public ?float $latency = null;
 
     /**
      * @param string[]|null $requestMethods
      */
     public function __construct(string $url, ?HttpClientInterface $client = null, ?array $requestMethods = null)
     {
-        if ($requestMethods)
+        if ($requestMethods) {
             $this->requestMethods = $requestMethods;
+        }
 
-        $latencySum = $latencyCount = null;
+        $latencySum = 0.0;
+        $latencyCount = 0;
 
         foreach ($this->requestMethods as $method) {
-            $this->{strtolower($method)} = new HeadersValidation($method, $url, $client);
+            $validation = new HeadersValidation($method, $url, $client);
+            $this->methods[strtolower($method)] = $validation;
 
-            if ($this->{strtolower($method)}->valid) {
-                $latencySum += $this->{strtolower($method)}->latency;
+            if ($validation->valid && $validation->latency !== null) {
+                $latencySum += $validation->latency;
                 $latencyCount++;
             }
         }
-        $this->latency = $latencyCount > 0 ? $latencySum/$latencyCount : null;
+
+        $this->latency = $latencyCount > 0 ? $latencySum / $latencyCount : null;
+    }
+
+    public function __get(string $name): ?HeadersValidation
+    {
+        return $this->methods[$name] ?? null;
+    }
+
+    public function __isset(string $name): bool
+    {
+        return isset($this->methods[$name]);
+    }
+
+    /**
+     * Serialise as "latency" followed by one entry per tested method, preserving
+     * the historical JSON shape (e.g. {"latency": ..., "get": {...}, ...}).
+     *
+     * @return array<string, float|HeadersValidation|null>
+     */
+    public function jsonSerialize(): array
+    {
+        return ['latency' => $this->latency] + $this->methods;
     }
 }

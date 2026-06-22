@@ -20,7 +20,6 @@ abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
 
     /**
      * @return Generator<int, Proxy>
-     * @throws InvalidArgumentException
      * @throws ScraperException
      */
     public function get(): Generator
@@ -44,26 +43,34 @@ abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
             if (!is_array($item)) {
                 continue;
             }
-            yield $this->extractProxy($item);
+            $proxy = $this->extractProxy($item);
+            if ($proxy !== null) {
+                yield $proxy;
+            }
         }
     }
 
     /**
+     * Build a Proxy from one list item, or null when the item is malformed.
+     * A single bad entry is skipped rather than aborting the whole source,
+     * consistent with the text/table scrapers and GeonodeProxyList.
+     *
      * @param array<array-key, mixed> $item
-     * @return Proxy
-     * @throws InvalidArgumentException
-     * @throws ScraperException
      */
-    private function extractProxy(array $item): Proxy
+    private function extractProxy(array $item): ?Proxy
     {
         $host = $item[$this->hostProperty] ?? null;
         $port = $item[$this->portProperty] ?? null;
         $protocol = $item[$this->protocolProperty] ?? null;
 
         if (!is_scalar($host) || !is_scalar($port) || !is_scalar($protocol)) {
-            throw new ScraperException('Failed to extract, response (' . json_encode($item) . ')');
+            return null;
         }
 
-        return $this->makeProxy((string) $host, (string) $port, (string) $protocol);
+        try {
+            return $this->makeProxy((string) $host, (string) $port, (string) $protocol);
+        } catch (InvalidArgumentException $e) {
+            return null;
+        }
     }
 }

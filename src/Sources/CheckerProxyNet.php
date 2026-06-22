@@ -14,7 +14,7 @@ use IlmLV\ProxyScraper\ScraperInterface;
 final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
 {
     protected string $url = 'https://api.checkerproxy.net/v1/landing/archive';
-    const SCHEDULE = '0 0 * * *';
+    public const SCHEDULE = '0 0 * * *';
 
     /**
      * The archive API no longer exposes a proxy type/protocol, just an
@@ -23,7 +23,6 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
     protected string $protocol = 'http';
 
     /**
-     * @return Generator
      * @throws InvalidArgumentException
      * @throws ScraperException
      */
@@ -61,7 +60,6 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
      * The archive is published with a few days of delay, so we resolve the most
      * recent available date from the archive index before fetching its proxies.
      *
-     * @return string
      * @throws ScraperException
      */
     private function latestArchiveDate(): string

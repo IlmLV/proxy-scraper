@@ -12,32 +12,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AnonymityLevelValidation
 {
-    const URL = 'http://whoami.serviss.it/?format=json';
+    public const URL = 'http://whoami.serviss.it/?format=json';
 
-    /**
-     * @var HttpClientInterface
-     */
     protected HttpClientInterface $client;
 
-    /**
-     * @var Host
-     */
     private Host $hostIp;
 
-    /**
-     * @var string|null
-     */
     public ?string $anonymityLevel;
 
-    /**
-     * @var ResponseError
-     */
-    public ResponseError $error;
+    public ?ResponseError $error = null;
 
-    /**
-     * @param Host $hostIp
-     * @param HttpClientInterface|null $client
-     */
     public function __construct(Host $hostIp, ?HttpClientInterface $client = null)
     {
         $this->hostIp = $hostIp;
@@ -47,20 +31,17 @@ class AnonymityLevelValidation
     }
 
     /**
-     * @return string
      * @throws ValidatorException
      */
     public function __toString(): string
     {
-        if (!$this->anonymityLevel)
+        if (!$this->anonymityLevel) {
             throw new ValidatorException((string) $this->error);
+        }
 
         return $this->anonymityLevel;
     }
 
-    /**
-     * @return string|null
-     */
     public function anonymityLevel(): ?string
     {
         try {
@@ -85,13 +66,13 @@ class AnonymityLevelValidation
             $level = 'exposed';
             if ($response->getStatusCode() === 200 && !in_array((string)$this->hostIp, $body)) {
                 $level = 'anonymous';
-                $hasProxyHeader = call_user_func(function() use ($body): bool {
-                    $proxyHeaders = array(
+                $hasProxyHeader = call_user_func(function () use ($body): bool {
+                    $proxyHeaders = [
                         'x_real_ip',
                         'via',
                         'client_ip',
                         'xroxy_connection',
-                    );
+                    ];
                     $proxyHeaderPrefixes = [
                         'proxy',
                         'x_proxy',
@@ -115,8 +96,7 @@ class AnonymityLevelValidation
                 }
             }
             return $level;
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return null;
         }

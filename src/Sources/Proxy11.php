@@ -16,5 +16,5 @@ final class Proxy11 extends TableListScraper implements ScraperInterface
     protected int $colAddress = 0;
     protected int $colPort = 1;
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 }

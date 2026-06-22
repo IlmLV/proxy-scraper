@@ -4,8 +4,8 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Validations;
 
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Validations\IpVersionValidation;
-use Symfony\Component\HttpClient\Response\MockResponse;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class IpVersionValidationTest extends TestCase
 {

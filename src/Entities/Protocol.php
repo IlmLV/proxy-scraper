@@ -12,16 +12,12 @@ final class Protocol
         'http',
         'https',
         'socks4',
-        'socks5'
+        'socks5',
     ];
 
-    /**
-     * @var string
-     */
     private string $protocol;
 
     /**
-     * @param string $protocol
      * @throws InvalidArgumentException
      */
     public function __construct(string $protocol)
@@ -32,9 +28,6 @@ final class Protocol
         $this->protocol = $protocol;
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return $this->protocol;

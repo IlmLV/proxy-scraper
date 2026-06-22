@@ -21,7 +21,7 @@ capabilities — anonymity level, latency, HTTP(S) method support and more. Supp
 
 ## Why this library
 
-- **Batteries included** — 39 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in CI; add your own in a few lines.
+- **Batteries included** — 39 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in a separate weekly CI job; add your own in a few lines.
 - **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
 - **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
 - **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
@@ -316,7 +316,9 @@ foreach ($proxies->get() as $proxy) {
 ```
 
 The validation result looks like (the `domains` block lists only the validators
-you opted into — it is empty when none are configured):
+you opted into — it is empty when none are configured). Every individual check
+also carries an `error` field — `null` when it succeeded, a `{message, file,
+line}` object when it failed (`line` is an integer):
 
 ```json
 {
@@ -381,7 +383,7 @@ you opted into — it is empty when none are configured):
       "error": {
         "message": "Connection to proxy closed for \"http://whoami.serviss.it/?format=json\".",
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
-        "line": "56"
+        "line": 56
       },
       "headers": {}
     },
@@ -424,7 +426,7 @@ you opted into — it is empty when none are configured):
       "error": {
         "message": "Connection to proxy closed for \"https://whoami.serviss.it/?format=json\".",
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
-        "line": "56"
+        "line": 56
       },
       "headers": []
     },

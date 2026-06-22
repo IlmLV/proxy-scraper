@@ -16,5 +16,5 @@ final class FreeProxyListNetUkProxy extends TableListScraper implements ScraperI
     protected int $colAddress = 0;
     protected int $colPort = 1;
 
-    const SCHEDULE = '*/10 * * * *';
+    public const SCHEDULE = '*/10 * * * *';
 }

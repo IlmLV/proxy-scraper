@@ -4,8 +4,8 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Tests\Support\StubScraper;
-use Symfony\Component\HttpClient\MockHttpClient;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
 
 class ProxyScraperTest extends TestCase
 {

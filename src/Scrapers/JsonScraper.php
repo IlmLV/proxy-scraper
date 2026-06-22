@@ -34,8 +34,6 @@ abstract class JsonScraper extends ProxyScraper implements ScraperInterface
     }
 
     /**
-     * @param string $response
-     * @return Proxy
      * @throws InvalidArgumentException
      * @throws ScraperException
      */

@@ -7,8 +7,8 @@ use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\Sources\ClarketmProxyList;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
-use Symfony\Component\HttpClient\Response\MockResponse;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class LoadProxiesTest extends TestCase
 {

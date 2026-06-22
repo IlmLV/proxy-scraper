@@ -10,7 +10,7 @@ use IlmLV\ProxyScraper\Entities\Protocol;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class ProxyScraper
+abstract class ProxyScraper
 {
     protected string $url;
 
@@ -20,11 +20,8 @@ class ProxyScraper
     protected array $options;
 
     /** @var string */
-    const SCHEDULE = '* * * * *';
+    public const SCHEDULE = '* * * * *';
 
-    /**
-     * @var HttpClientInterface
-     */
     protected HttpClientInterface $httpClient;
 
     /**
@@ -61,7 +58,7 @@ class ProxyScraper
     private function processOptions(array $options): array
     {
         // cast all booleans as string
-        return array_map(function($a) {
+        return array_map(function ($a) {
             if (is_bool($a)) {
                 return $a === true ? 'true' : 'false';
             }
@@ -69,9 +66,6 @@ class ProxyScraper
         }, $options);
     }
 
-    /**
-     * @return string
-     */
     protected function getUrl(string ...$values): string
     {
         $url = $values === [] ? $this->url : sprintf($this->url, ...$values);
@@ -84,10 +78,6 @@ class ProxyScraper
     }
 
     /**
-     * @param string $ip
-     * @param int|string $port
-     * @param string $protocol
-     * @return Proxy
      * @throws Exceptions\InvalidArgumentException
      */
     protected function makeProxy(string $ip, int|string $port, string $protocol): Proxy

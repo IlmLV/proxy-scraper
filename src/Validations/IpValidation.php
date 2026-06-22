@@ -10,37 +10,16 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IpValidation extends AbstractRequestValidation
 {
-    const URL = 'http://ip.serviss.it/?format=json';
+    public const URL = 'http://ip.serviss.it/?format=json';
 
-    /**
-     * @var Host
-     */
     private Host $proxyHost;
 
-    /**
-     * @var bool
-     */
     protected bool $useBenchmark = false;
 
-    /**
-     * @var string
-     */
     public string $countryIsoCode;
 
-    /**
-     * @var string
-     */
     public string $organisation;
 
-    /**
-     * @var ResponseError
-     */
-    public ResponseError $error;
-
-    /**
-     * @param Host $proxyHost
-     * @param HttpClientInterface|null $client
-     */
     public function __construct(Host $proxyHost, ?HttpClientInterface $client = null)
     {
         $this->proxyHost = $proxyHost;
@@ -48,9 +27,6 @@ class IpValidation extends AbstractRequestValidation
         parent::__construct('GET', self::URL, $client);
     }
 
-    /**
-     * @return bool
-     */
     public function validate(): bool
     {
         try {
@@ -70,8 +46,7 @@ class IpValidation extends AbstractRequestValidation
             $this->organisation = $organisation;
 
             return $response->getStatusCode() === 200 && $ip === $this->proxyHost->ip;
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return false;
         }

@@ -17,17 +17,12 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class IpVersionValidation
 {
-    const IPV4_URL = 'http://ipv4.serviss.it/?format=json';
-    const IPV6_URL = 'http://ipv6.serviss.it/?format=json';
+    public const IPV4_URL = 'http://ipv4.serviss.it/?format=json';
+    public const IPV6_URL = 'http://ipv6.serviss.it/?format=json';
 
     public EgressValidation $ipv4;
     public EgressValidation $ipv6;
 
-    /**
-     * @param HttpClientInterface|null $client
-     * @param string|null $ipv4Url
-     * @param string|null $ipv6Url
-     */
     public function __construct(?HttpClientInterface $client = null, ?string $ipv4Url = null, ?string $ipv6Url = null)
     {
         $this->ipv4 = new EgressValidation($ipv4Url ?? self::IPV4_URL, $client);

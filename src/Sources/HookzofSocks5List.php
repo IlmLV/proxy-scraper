@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
 final class HookzofSocks5List extends TextListScraper implements ScraperInterface
 {
@@ -13,5 +13,5 @@ final class HookzofSocks5List extends TextListScraper implements ScraperInterfac
 
     protected ?string $protocol = 'socks5';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 }

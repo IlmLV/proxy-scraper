@@ -16,5 +16,5 @@ final class ProxyListPlusHttp extends TableListScraper implements ScraperInterfa
     protected int $colAddress = 1;
     protected int $colPort = 2;
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 }

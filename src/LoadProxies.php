@@ -13,14 +13,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class LoadProxies
 {
-    /**
-     * @var ScrapedProxyList
-     */
     private ScrapedProxyList $proxies;
 
-    /**
-     * @var HttpClientInterface
-     */
     protected HttpClientInterface $httpClient;
 
     /**
@@ -89,7 +83,7 @@ class LoadProxies
             'timeout' => 30,
         ]);
 
-        $this->proxies = new ScrapedProxyList;
+        $this->proxies = new ScrapedProxyList();
     }
 
     /**
@@ -176,8 +170,7 @@ class LoadProxies
             $result = (new $scraper($this->httpClient, $config))->get();
 
             $this->proxies->push($scraper, iterator_to_array($result, false));
-        }
-        catch (ProxyScraperException $e) {
+        } catch (ProxyScraperException $e) {
             $this->errors[$scraper] = $e;
         }
     }

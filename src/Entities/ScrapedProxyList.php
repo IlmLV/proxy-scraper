@@ -12,9 +12,7 @@ class ScrapedProxyList
     private array $array = [];
 
     /**
-     * @param string $scraper
      * @param Proxy[] $proxies
-     * @return void
      */
     public function push(string $scraper, array $proxies): void
     {
@@ -34,7 +32,7 @@ class ScrapedProxyList
      */
     public function stats(): array
     {
-        return array_map(function ($proxies){
+        return array_map(function ($proxies) {
             $stats = [];
             foreach ($proxies as $proxy) {
                 $stats[(string)$proxy->protocol] = ($stats[(string)$proxy->protocol] ?? 0) + 1;

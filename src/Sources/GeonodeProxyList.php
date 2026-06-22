@@ -21,7 +21,7 @@ final class GeonodeProxyList extends ProxyScraper implements ScraperInterface
 {
     protected string $url = 'https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 
     /**
      * @return Generator<int, \IlmLV\ProxyScraper\Entities\Proxy>

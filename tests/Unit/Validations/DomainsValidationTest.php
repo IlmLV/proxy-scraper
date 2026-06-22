@@ -5,9 +5,9 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Validations;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
 use IlmLV\ProxyScraper\Validations\DomainsValidation;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use PHPUnit\Framework\TestCase;
 
 class DomainsValidationTest extends TestCase
 {
@@ -29,7 +29,7 @@ class DomainsValidationTest extends TestCase
     public function testDomainValidatorFailsOnUnexpectedPage(): void
     {
         $client = MockClientFactory::router(
-             fn (string $method, string $url, array $options) => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
+            fn (string $method, string $url, array $options) => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
         );
 
         $validation = new DomainsValidation($client, [ExampleCom::class]);

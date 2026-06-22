@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\Scrapers\JsonListScraper;
 use IlmLV\ProxyScraper\ScraperInterface;
+use IlmLV\ProxyScraper\Scrapers\JsonListScraper;
 
 final class PubProxyCom extends JsonListScraper implements ScraperInterface
 {
@@ -13,5 +13,5 @@ final class PubProxyCom extends JsonListScraper implements ScraperInterface
     protected ?string $listPath = 'data';
     protected string $protocolProperty = 'type';
 
-    const SCHEDULE = '0,30 * * * *';
+    public const SCHEDULE = '0,30 * * * *';
 }

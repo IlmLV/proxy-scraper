@@ -80,6 +80,26 @@ jobs:
       - name: Run PHPStan
         run: vendor/bin/phpstan analyse --no-progress
 
+  # Code style — gates the build alongside the unit suite and static analysis.
+  code-style:
+    name: Code style (PHP-CS-Fixer)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: dom, simplexml, json
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist --no-progress
+
+      - name: Check code style
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff --allow-risky=yes
+
   # Hits the real provider endpoints — the dead-provider monitor.
   # Runs only on schedule or manual dispatch and never blocks the build.
   live-sources:
