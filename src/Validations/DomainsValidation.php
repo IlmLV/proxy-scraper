@@ -4,40 +4,34 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
-use IlmLV\ProxyScraper\Validations\Domains\AmazonCom;
-use IlmLV\ProxyScraper\Validations\Domains\CraigslistOrg;
-use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
-use IlmLV\ProxyScraper\Validations\Domains\GoogleCom;
-use IlmLV\ProxyScraper\Validations\Domains\SsCom;
+use IlmLV\ProxyScraper\Validations\Domains\AbstractDomainValidation;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DomainsValidation implements \JsonSerializable
 {
-    /**
-     * Validator classes to run. Each is stored in $validators keyed by its
-     * ::NAME (e.g. "amazon.com") and reached through the magic accessors,
-     * so results stay addressable by domain without dynamic properties.
-     */
-    private const VALIDATORS = [
-        AmazonCom::class,
-        CraigslistOrg::class,
-        ExampleCom::class,
-        GoogleCom::class,
-        SsCom::class,
-    ];
-
-    /** @var array<string, AbstractRequestValidation> */
+    /** @var array<string, AbstractDomainValidation> */
     private array $validators = [];
 
-    public function __construct(?HttpClientInterface $client = null)
+    /**
+     * Domain validation is opt-in: no validators run unless the caller passes
+     * them. Provide a list of validator classes (each extending
+     * AbstractDomainValidation, see Domains\ExampleCom for the template). Each
+     * is stored in $validators keyed by its ::NAME (e.g. "example.com") and
+     * reached through the magic accessors, so results stay addressable by domain
+     * without dynamic properties.
+     *
+     * @param array<class-string<AbstractDomainValidation>> $validators
+     */
+    public function __construct(?HttpClientInterface $client = null, array $validators = [])
     {
-        foreach (self::VALIDATORS as $validator) {
-            $this->validators[$validator::NAME] = new $validator($client);
+        foreach ($validators as $validatorClass) {
+            $validator = new $validatorClass($client);
+            $this->validators[$validator::NAME] = $validator;
         }
     }
 
     /**
-     * @return AbstractRequestValidation|null
+     * @return AbstractDomainValidation|null
      */
     public function __get(string $name): mixed
     {
@@ -46,7 +40,7 @@ class DomainsValidation implements \JsonSerializable
 
     public function __set(string $name, mixed $value): void
     {
-        if ($value instanceof AbstractRequestValidation) {
+        if ($value instanceof AbstractDomainValidation) {
             $this->validators[$name] = $value;
         }
     }
@@ -64,7 +58,7 @@ class DomainsValidation implements \JsonSerializable
     /**
      * Serialise as "domain name => validation result".
      *
-     * @return array<string, AbstractRequestValidation>
+     * @return array<string, AbstractDomainValidation>
      */
     public function jsonSerialize(): array
     {

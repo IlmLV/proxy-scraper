@@ -5,20 +5,12 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Validations\Domains;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Validations\AbstractRequestValidation;
 use Symfony\Component\DomCrawler\Crawler as Dom;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class ExampleCom extends AbstractRequestValidation
+class ExampleCom extends AbstractDomainValidation
 {
     const NAME = 'example.com';
-    const METHOD = 'GET';
     const URL = 'http://example.com/';
-
-    public function __construct(?HttpClientInterface $client = null)
-    {
-        parent::__construct(self::METHOD, self::URL, $client);
-    }
 
     public function validate(): bool
     {

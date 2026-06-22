@@ -231,7 +231,7 @@ This library can also be used for proxy capability validation:
 - ***HTTPS*** request support
 - various ***request methods***: GET, POST, PUT, OPTIONS, HEAD, DELETE, PATCH
 - huge amount of ***request headers*** if they are not modified by proxy - tested in each request method
-- multiple public ***domains*** (amazon.com, craigslist.org, example.com, google.com, ss.com)
+- optional ***domain*** reachability checks — opt-in, none run by default; ships with `example.com` as a reference you extend (see [Custom domain validators](#custom-domain-validators))
 - ***IP version*** egress capability — whether the proxy can route traffic to IPv4-only and/or IPv6-only destinations.
 - average ***latency*** calculation
 
@@ -245,6 +245,56 @@ use IlmLV\ProxyScraper\Validations\ProxyValidation;
 $validation = new ProxyValidation('http://1.1.1.1:80');
 
 dump($validation);
+```
+
+### Custom domain validators
+
+Domain reachability checks are **opt-in** — none run unless you ask for them.
+A validator extends `AbstractDomainValidation` and only declares what is specific
+to it: the domain `NAME` (used as the result key), the `URL` to request (and an
+optional non-`GET` `METHOD`), plus a `validate()` that decides whether the
+response is what the site should return. The bundled `ExampleCom` is the template:
+
+```php
+namespace IlmLV\ProxyScraper\Validations\Domains;
+
+use IlmLV\ProxyScraper\Entities\ResponseError;
+use Symfony\Component\DomCrawler\Crawler as Dom;
+
+class ExampleCom extends AbstractDomainValidation
+{
+    const NAME = 'example.com';   // result key, e.g. $validation->domains->{'example.com'}
+    const URL = 'http://example.com/';
+
+    public function validate(): bool
+    {
+        try {
+            $response = $this->request($this->method, $this->url);
+            $title = (new Dom($response->getContent()))->filter('title');
+
+            return $response->getStatusCode() === 200
+                && $title->text() === 'Example Domain';
+        }
+        catch (\Throwable $e) {
+            $this->error = new ResponseError($e);
+            return false;
+        }
+    }
+}
+```
+
+Pass the validator classes you want to run to `ProxyValidation`:
+
+```php
+use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
+use IlmLV\ProxyScraper\Validations\ProxyValidation;
+
+$validation = new ProxyValidation('http://1.1.1.1:80', null, [
+    ExampleCom::class,
+    MyShop::class,   // your own validator extending AbstractRequestValidation
+]);
+
+$validation->domains->{'example.com'}->valid;   // bool
 ```
 
 ### Scrape and validate
@@ -265,7 +315,8 @@ foreach ($proxies->get() as $proxy) {
 }
 ```
 
-The validation result looks like:
+The validation result looks like (the `domains` block lists only the validators
+you opted into — it is empty when none are configured):
 
 ```json
 {
@@ -404,25 +455,9 @@ The validation result looks like:
     }
   },
   "domains": {
-    "amazon.com": {
-      "valid": true,
-      "latency": 1.7253589630127
-    },
-    "craigslist.org": {
-      "valid": true,
-      "latency": 4.507395029068
-    },
     "example.com": {
       "valid": true,
       "latency": 0.4618821144104
-    },
-    "google.com": {
-      "valid": false,
-      "latency": 0.41366505622864
-    },
-    "ss.com": {
-      "valid": true,
-      "latency": 0.44051098823547
     }
   },
   "ipVersion": {
@@ -472,7 +507,7 @@ non-blocking job on a weekly schedule (and on demand) so dead or drifting provid
 are caught early.
 
 ## TODO:
-- Add capability to add custom domain validations
+- ~~Add capability to add custom domain validations~~ ✅
 - Reduce dependencies
 - Improve documentation
 - Tighten argument strict conditions
