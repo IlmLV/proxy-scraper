@@ -9,6 +9,7 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Entities\RandomUserAgent;
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
+use IlmLV\ProxyScraper\Validations\Domains\AbstractDomainValidation;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -16,6 +17,9 @@ class ProxyValidation
 {
     private Proxy $proxy;
     protected HttpClientInterface $client;
+
+    /** @var array<class-string<AbstractDomainValidation>> */
+    private array $domainValidators;
 
     private string $httpUrl = 'http://whoami.serviss.it/?format=json';
     private string $httpsUrl = 'https://whoami.serviss.it/?format=json';
@@ -34,11 +38,15 @@ class ProxyValidation
     public \DateTimeInterface $validatedAt;
 
     /**
+     * @param array<class-string<AbstractDomainValidation>> $domainValidators Opt-in
+     *        domain validators to run (none by default). See Domains\ExampleCom
+     *        for the template; pass e.g. [ExampleCom::class].
      * @throws InvalidArgumentException
      */
-    public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null)
+    public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null, array $domainValidators = [])
     {
         $this->proxy = is_string($proxy) ? new Proxy($proxy) : $proxy;
+        $this->domainValidators = $domainValidators;
 
         $this->client = $client ?? HttpClient::create([
             'timeout' => 10,
@@ -62,7 +70,7 @@ class ProxyValidation
             $this->ip = new IpValidation($this->proxy->host, $this->client);
             $this->http = new MethodsValidation($this->httpUrl, $this->client);
             $this->https = new MethodsValidation($this->httpsUrl, $this->client);
-            $this->domains = new DomainsValidation($this->client);
+            $this->domains = new DomainsValidation($this->client, $this->domainValidators);
             $this->ipVersion = new IpVersionValidation($this->client);
         }
         catch (\Throwable $e) {

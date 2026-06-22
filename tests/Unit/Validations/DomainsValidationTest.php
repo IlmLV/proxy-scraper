@@ -3,6 +3,7 @@
 namespace IlmLV\ProxyScraper\Tests\Unit\Validations;
 
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
+use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
 use IlmLV\ProxyScraper\Validations\DomainsValidation;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -10,15 +11,19 @@ use PHPUnit\Framework\TestCase;
 
 class DomainsValidationTest extends TestCase
 {
-    public function testAllDomainValidatorsPassWithExpectedPages(): void
+    public function testNoValidatorsRunByDefault(): void
     {
         $validation = new DomainsValidation(self::expectedPagesClient());
 
+        $this->assertFalse(isset($validation->{'example.com'}));
+        $this->assertSame([], $validation->jsonSerialize());
+    }
+
+    public function testConfiguredValidatorRunsAndPasses(): void
+    {
+        $validation = new DomainsValidation(self::expectedPagesClient(), [ExampleCom::class]);
+
         $this->assertTrue($validation->{'example.com'}->valid);
-        $this->assertTrue($validation->{'amazon.com'}->valid);
-        $this->assertTrue($validation->{'craigslist.org'}->valid);
-        $this->assertTrue($validation->{'google.com'}->valid);
-        $this->assertTrue($validation->{'ss.com'}->valid);
     }
 
     public function testDomainValidatorFailsOnUnexpectedPage(): void
@@ -27,17 +32,17 @@ class DomainsValidationTest extends TestCase
              fn (string $method, string $url, array $options) => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
         );
 
-        $validation = new DomainsValidation($client);
+        $validation = new DomainsValidation($client, [ExampleCom::class]);
 
         $this->assertFalse($validation->{'example.com'}->valid);
     }
 
     public function testMagicAccessorsExposeValidatorsByDomain(): void
     {
-        $validation = new DomainsValidation(self::expectedPagesClient());
+        $validation = new DomainsValidation(self::expectedPagesClient(), [ExampleCom::class]);
 
         // __isset / __get
-        $this->assertTrue(isset($validation->{'amazon.com'}));
+        $this->assertTrue(isset($validation->{'example.com'}));
         $this->assertFalse(isset($validation->{'nonexistent.test'}));
         $this->assertNull($validation->{'nonexistent.test'});
 
@@ -47,36 +52,26 @@ class DomainsValidationTest extends TestCase
         $this->assertSame($probe, $validation->{'custom.test'});
 
         // __unset
-        unset($validation->{'amazon.com'});
-        $this->assertFalse(isset($validation->{'amazon.com'}));
+        unset($validation->{'example.com'});
+        $this->assertFalse(isset($validation->{'example.com'}));
     }
 
     public function testSerialisesKeyedByDomainName(): void
     {
-        $validation = new DomainsValidation(self::expectedPagesClient());
+        $validation = new DomainsValidation(self::expectedPagesClient(), [ExampleCom::class]);
 
         $decoded = json_decode(json_encode($validation), true);
 
         $this->assertArrayHasKey('example.com', $decoded);
-        $this->assertArrayHasKey('ss.com', $decoded);
         $this->assertTrue($decoded['example.com']['valid']);
     }
 
     private static function expectedPagesClient(): MockHttpClient
     {
         return MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
-            $fixture = match (true) {
-                str_contains($url, 'example.com') => 'Validations/example.html',
-                str_contains($url, 'amazon')      => 'Validations/amazon.html',
-                str_contains($url, 'craigslist')  => 'Validations/craigslist.html',
-                str_contains($url, 'google')      => 'Validations/google.html',
-                str_contains($url, 'ss.com')      => 'Validations/ss.html',
-                default                           => null,
-            };
-
-            return $fixture === null
-                ? new MockResponse('', ['http_code' => 404])
-                : new MockResponse(MockClientFactory::load($fixture));
+            return str_contains($url, 'example.com')
+                ? new MockResponse(MockClientFactory::load('Validations/example.html'))
+                : new MockResponse('', ['http_code' => 404]);
         });
     }
 }

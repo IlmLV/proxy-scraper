@@ -4,6 +4,7 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
+use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
 use IlmLV\ProxyScraper\Validations\DomainsValidation;
 use IlmLV\ProxyScraper\Validations\IpValidation;
 use IlmLV\ProxyScraper\Validations\IpVersionValidation;
@@ -16,7 +17,7 @@ class ProxyValidationTest extends TestCase
 {
     public function testFullHappyPathProducesValidResult(): void
     {
-        $validation = new ProxyValidation('http://1.2.3.4:8080', self::happyPathClient());
+        $validation = new ProxyValidation('http://1.2.3.4:8080', self::happyPathClient(), [ExampleCom::class]);
 
         $this->assertTrue($validation->valid);
         $this->assertSame('elite', $validation->anonymityLevel);
@@ -61,14 +62,14 @@ class ProxyValidationTest extends TestCase
     }
 
     /**
-     * Routes the ~22 requests ProxyValidation makes to appropriate fixtures,
+     * Routes the requests ProxyValidation makes to appropriate fixtures,
      * regardless of order:
      *  - whoami + proxy:false  -> the real (direct) IP
      *  - whoami otherwise      -> echo {method}, so anonymity reads "elite" and
      *                             every MethodsValidation request validates
      *  - ip.serviss.it         -> reports the proxy host IP (matches 1.2.3.4)
      *  - ipv4/ipv6.serviss.it  -> reachable egress, reports an IP
-     *  - domain checks         -> the expected per-domain landing pages
+     *  - example.com           -> the expected landing page (opt-in domain check)
      */
     private static function happyPathClient(): \Symfony\Component\HttpClient\MockHttpClient
     {
@@ -89,18 +90,9 @@ class ProxyValidationTest extends TestCase
                 return new MockResponse(MockClientFactory::load('Validations/ip-match.json'));
             }
 
-            $fixture = match (true) {
-                str_contains($url, 'example.com') => 'Validations/example.html',
-                str_contains($url, 'amazon')      => 'Validations/amazon.html',
-                str_contains($url, 'craigslist')  => 'Validations/craigslist.html',
-                str_contains($url, 'google')      => 'Validations/google.html',
-                str_contains($url, 'ss.com')      => 'Validations/ss.html',
-                default                           => null,
-            };
-
-            return $fixture === null
-                ? new MockResponse('{}', ['http_code' => 200])
-                : new MockResponse(MockClientFactory::load($fixture));
+            return str_contains($url, 'example.com')
+                ? new MockResponse(MockClientFactory::load('Validations/example.html'))
+                : new MockResponse('{}', ['http_code' => 200]);
         });
     }
 }
