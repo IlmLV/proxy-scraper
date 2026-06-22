@@ -83,12 +83,14 @@ class HeadersValidation extends AbstractRequestValidation
 
             $response = $this->request($this->method, $this->url, ['headers' => $requestHeaders]);
 
-            $body = $response->getContent();
+            // Decode any Content-Encoding: we send Accept-Encoding above, which
+            // makes the client hand back the still-compressed body.
+            $body = $this->decodedContent($response);
 
             if ($this->method === 'HEAD') {
                 return $response->getStatusCode() === 200 && $body === '';
             } else {
-                $responseAttr = json_decode($response->getContent(), true);
+                $responseAttr = json_decode($body, true);
 
                 if (!is_array($responseAttr)) {
                     return false;
