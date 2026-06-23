@@ -54,4 +54,33 @@ abstract class AbstractRequestValidation
         return $this->useBenchmark ? Benchmark::measure($this->latency, $request) : $request();
     }
 
+    /**
+     * Read the response body, decompressing it when the server applied a
+     * Content-Encoding. Some validations set Accept-Encoding themselves (to
+     * exercise the proxy's request-header forwarding); when the request sets
+     * that header explicitly Symfony's HttpClient leaves the body compressed,
+     * so json_decode would fail unless we decode it here first.
+     *
+     * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+     */
+    protected function decodedContent(ResponseInterface $response): string
+    {
+        $body = $response->getContent();
+
+        $encoding = strtolower($response->getHeaders(false)['content-encoding'][0] ?? '');
+
+        if ($encoding === 'gzip' || $encoding === 'x-gzip' || str_starts_with($body, "\x1f\x8b")) {
+            $decoded = @gzdecode($body);
+        } elseif ($encoding === 'deflate') {
+            // Either zlib-wrapped (RFC 1950) or raw (RFC 1951) deflate.
+            $decoded = @gzuncompress($body);
+            if ($decoded === false) {
+                $decoded = @gzinflate($body);
+            }
+        } else {
+            return $body;
+        }
+
+        return $decoded === false ? $body : $decoded;
+    }
 }
