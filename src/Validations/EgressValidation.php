@@ -26,6 +26,11 @@ class EgressValidation extends AbstractRequestValidation
         parent::__construct('GET', $url, $client);
     }
 
+    public static function make(string $url, ?HttpClientInterface $client = null): self
+    {
+        return new self($url, $client);
+    }
+
     public function validate(): bool
     {
         try {

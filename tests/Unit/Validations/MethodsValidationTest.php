@@ -20,7 +20,7 @@ class MethodsValidationTest extends TestCase
             return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
         });
 
-        $validation = new MethodsValidation('http://whoami.serviss.it/?format=json', $client);
+        $validation = MethodsValidation::make('http://whoami.serviss.it/?format=json', $client)->run();
 
         foreach (['get', 'post', 'put', 'options', 'head', 'delete', 'patch'] as $method) {
             $this->assertInstanceOf(HeadersValidation::class, $validation->{$method});
@@ -35,7 +35,7 @@ class MethodsValidationTest extends TestCase
             return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
         });
 
-        $validation = new MethodsValidation('http://whoami.serviss.it/?format=json', $client, ['GET']);
+        $validation = MethodsValidation::make('http://whoami.serviss.it/?format=json', $client)->setRequestMethods(['GET'])->run();
 
         $this->assertInstanceOf(HeadersValidation::class, $validation->get);
         $this->assertTrue($validation->get->valid);

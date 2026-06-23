@@ -36,8 +36,22 @@ class AnonymityLevelValidation
     {
         $this->hostIp = $hostIp;
         $this->client = $client ?? HttpClient::create();
+    }
 
+    public static function make(Host $hostIp, ?HttpClientInterface $client = null): self
+    {
+        return new self($hostIp, $client);
+    }
+
+    /**
+     * Determine the anonymity level (populating $anonymityLevel / $error) and
+     * return $this. Construction performs no I/O.
+     */
+    public function run(): self
+    {
         $this->anonymityLevel = $this->anonymityLevel();
+
+        return $this;
     }
 
     /**

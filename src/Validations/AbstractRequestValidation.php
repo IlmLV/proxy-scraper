@@ -31,11 +31,23 @@ abstract class AbstractRequestValidation
         $this->client = $client ?? HttpClient::create();
         $this->method = $method;
         $this->url = $url;
-        $this->valid = $this->validate();
     }
 
     /**
-     * Run the validation for this request and report whether the proxy passed.
+     * Perform the request, populate the result properties ($valid, $latency,
+     * $error, …) and return $this. Construction performs no I/O — call run()
+     * explicitly (or let an aggregator do it) to execute the validation.
+     */
+    public function run(): static
+    {
+        $this->valid = $this->validate();
+
+        return $this;
+    }
+
+    /**
+     * The validation logic for one request: perform it and report whether the
+     * proxy passed. Invoked by {@see run()}; concrete validations implement this.
      */
     abstract public function validate(): bool;
 

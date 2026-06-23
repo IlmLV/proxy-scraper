@@ -16,7 +16,7 @@ class IpVersionValidationTest extends TestCase
             return new MockResponse(json_encode(['ip' => $ip]), ['http_code' => 200]);
         });
 
-        $validation = new IpVersionValidation($client);
+        $validation = IpVersionValidation::make($client)->run();
 
         $this->assertTrue($validation->ipv4->valid);
         $this->assertTrue($validation->ipv6->valid);
@@ -33,7 +33,7 @@ class IpVersionValidationTest extends TestCase
             return new MockResponse(json_encode(['ip' => '203.0.113.4']), ['http_code' => 200]);
         });
 
-        $validation = new IpVersionValidation($client);
+        $validation = IpVersionValidation::make($client)->run();
 
         $this->assertTrue($validation->ipv4->valid);
         $this->assertSame('203.0.113.4', $validation->ipv4->ip);
@@ -47,7 +47,7 @@ class IpVersionValidationTest extends TestCase
             return new MockResponse('', ['error' => 'Could not connect to proxy']);
         });
 
-        $validation = new IpVersionValidation($client);
+        $validation = IpVersionValidation::make($client)->run();
 
         $this->assertFalse($validation->ipv4->valid);
         $this->assertFalse($validation->ipv6->valid);

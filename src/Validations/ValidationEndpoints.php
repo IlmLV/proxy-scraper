@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Validations;
 
 /**
- * Default endpoints the validation subsystem probes through the proxy. 
- * They are centralised here so the URLs live in one place instead of 
+ * Default endpoints the validation subsystem probes through the proxy.
+ * They are centralised here so the URLs live in one place instead of
  * being duplicated across the individual validations.
  */
 final class ValidationEndpoints

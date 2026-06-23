@@ -14,22 +14,48 @@ class DomainsValidation implements \JsonSerializable
     /** @var array<string, AbstractDomainValidation> */
     private array $validators = [];
 
+    private ?HttpClientInterface $client;
+
+    /** @var array<class-string<AbstractDomainValidation>> */
+    private array $validatorClasses = [];
+
     /**
-     * Domain validation is opt-in: no validators run unless the caller passes
-     * them. Provide a list of validator classes (each extending
-     * AbstractDomainValidation, see Domains\ExampleCom for the template). Each
-     * is stored in $validators keyed by its ::NAME (e.g. "example.com") and
-     * reached through the magic accessors, so results stay addressable by domain
-     * without dynamic properties.
+     * Domain validation is opt-in: no validators run unless you configure them
+     * via setValidators(). Construction performs no I/O.
+     */
+    public function __construct(?HttpClientInterface $client = null)
+    {
+        $this->client = $client;
+    }
+
+    public static function make(?HttpClientInterface $client = null): self
+    {
+        return new self($client);
+    }
+
+    /**
+     * Register the domain validator classes to run (each extending
+     * AbstractDomainValidation, see Domains\ExampleCom for the template). run()
+     * instantiates and runs each, keyed by its ::NAME (e.g. "example.com") so
+     * results stay addressable by domain. Set before run().
      *
      * @param array<class-string<AbstractDomainValidation>> $validators
      */
-    public function __construct(?HttpClientInterface $client = null, array $validators = [])
+    public function setValidators(array $validators): self
     {
-        foreach ($validators as $validatorClass) {
-            $validator = new $validatorClass($client);
+        $this->validatorClasses = $validators;
+
+        return $this;
+    }
+
+    public function run(): self
+    {
+        foreach ($this->validatorClasses as $validatorClass) {
+            $validator = $validatorClass::make($this->client)->run();
             $this->validators[$validator::NAME] = $validator;
         }
+
+        return $this;
     }
 
     /**

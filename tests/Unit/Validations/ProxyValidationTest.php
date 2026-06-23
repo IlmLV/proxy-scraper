@@ -17,7 +17,7 @@ class ProxyValidationTest extends TestCase
 {
     public function testFullHappyPathProducesValidResult(): void
     {
-        $validation = new ProxyValidation('http://1.2.3.4:8080', self::happyPathClient(), [ExampleCom::class]);
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', self::happyPathClient())->setDomainValidators([ExampleCom::class])->run();
 
         $this->assertTrue($validation->valid);
         $this->assertSame('elite', $validation->anonymityLevel);
@@ -70,7 +70,7 @@ class ProxyValidationTest extends TestCase
             return new MockResponse('{}', ['http_code' => 200]);
         });
 
-        $validation = new ProxyValidation('http://1.2.3.4:8080', $client);
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', $client)->run();
 
         // Anonymity could not be determined, but that no longer aborts the run.
         $this->assertNull($validation->anonymityLevel);
@@ -89,7 +89,7 @@ class ProxyValidationTest extends TestCase
     {
         $client = MockClientFactory::router(fn (string $method, string $url, array $options) => new MockResponse('', ['http_code' => 500]));
 
-        $validation = new ProxyValidation('http://1.2.3.4:8080', $client);
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', $client)->run();
 
         $this->assertFalse($validation->valid);
         $this->assertInstanceOf(ResponseError::class, $validation->error);

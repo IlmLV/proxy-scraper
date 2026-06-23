@@ -262,12 +262,15 @@ This library can also be used for proxy capability validation:
 
 ### Validate a proxy
 
-`ProxyValidation` accepts either a proxy string or a `Proxy` entity:
+`ProxyValidation` accepts either a proxy string or a `Proxy` entity. Build it with
+`make()`, apply any optional configuration through the `set*()` methods
+(`setDomainValidators()`, …), then call `run()` to execute the checks; `run()`
+populates and returns the validation object. Construction itself performs no I/O.
 
 ```php
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 
-$validation = new ProxyValidation('http://1.1.1.1:80');
+$validation = ProxyValidation::make('http://1.1.1.1:80')->run();
 
 dump($validation);
 ```
@@ -308,16 +311,18 @@ class ExampleCom extends AbstractDomainValidation
 }
 ```
 
-Pass the validator classes you want to run to `ProxyValidation`:
+Register the validator classes you want to run with `setDomainValidators()`:
 
 ```php
 use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 
-$validation = new ProxyValidation('http://1.1.1.1:80', null, [
-    ExampleCom::class,
-    MyShop::class,   // your own validator extending AbstractRequestValidation
-]);
+$validation = ProxyValidation::make('http://1.1.1.1:80')
+    ->setDomainValidators([
+        ExampleCom::class,
+        MyShop::class,   // your own validator extending AbstractDomainValidation
+    ])
+    ->run();
 
 $validation->domains->{'example.com'}->valid;   // bool
 ```
@@ -334,7 +339,7 @@ use IlmLV\ProxyScraper\Validations\ProxyValidation;
 $proxies = LoadProxies::init()->only(FreeProxyListNet::class);
 
 foreach ($proxies->get() as $proxy) {
-    $validation = new ProxyValidation($proxy);
+    $validation = ProxyValidation::make($proxy)->run();
 
     dump(json_decode(json_encode($validation)));
 }

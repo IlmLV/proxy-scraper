@@ -27,6 +27,11 @@ class IpValidation extends AbstractRequestValidation
         parent::__construct('GET', self::URL, $client);
     }
 
+    public static function make(Host $proxyHost, ?HttpClientInterface $client = null): self
+    {
+        return new self($proxyHost, $client);
+    }
+
     public function validate(): bool
     {
         try {

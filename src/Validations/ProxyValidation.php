@@ -19,7 +19,7 @@ class ProxyValidation
     protected HttpClientInterface $client;
 
     /** @var array<class-string<AbstractDomainValidation>> */
-    private array $domainValidators;
+    private array $domainValidators = [];
 
     private string $httpUrl = ValidationEndpoints::WHOAMI_HTTP;
     private string $httpsUrl = ValidationEndpoints::WHOAMI_HTTPS;
@@ -38,15 +38,11 @@ class ProxyValidation
     public \DateTimeInterface $validatedAt;
 
     /**
-     * @param array<class-string<AbstractDomainValidation>> $domainValidators Opt-in
-     *        domain validators to run (none by default). See Domains\ExampleCom
-     *        for the template; pass e.g. [ExampleCom::class].
      * @throws InvalidArgumentException
      */
-    public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null, array $domainValidators = [])
+    public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null)
     {
         $this->proxy = is_string($proxy) ? Proxy::fromString($proxy) : $proxy;
-        $this->domainValidators = $domainValidators;
 
         $this->client = $client ?? HttpClient::create([
             'timeout' => 10,
@@ -58,24 +54,51 @@ class ProxyValidation
             ],
             'proxy' => $this->proxy,
         ]);
-
-        $this->validate();
     }
 
-    private function validate(): void
+    /**
+     * @throws InvalidArgumentException
+     */
+    public static function make(Proxy|string $proxy, ?HttpClientInterface $client = null): self
+    {
+        return new self($proxy, $client);
+    }
+
+    /**
+     * Opt-in domain validators to run (none by default). Each must extend
+     * AbstractDomainValidation (see Domains\ExampleCom for the template); pass
+     * e.g. [ExampleCom::class]. Set before run().
+     *
+     * @param array<class-string<AbstractDomainValidation>> $domainValidators
+     */
+    public function setDomainValidators(array $domainValidators): self
+    {
+        $this->domainValidators = $domainValidators;
+
+        return $this;
+    }
+
+    /**
+     * Run every check against the proxy, populating this object's result
+     * properties ($anonymityLevel, $ip, $http, …), and return $this.
+     * Construction performs no I/O — call run() to execute the validation.
+     */
+    public function run(): self
     {
         try {
             $this->validatedAt = new \DateTime();
-            $this->anonymityLevel = (new AnonymityLevelValidation($this->realIp(), $this->client))->anonymityLevel;
-            $this->ip = new IpValidation($this->proxy->host, $this->client);
-            $this->http = new MethodsValidation($this->httpUrl, $this->client);
-            $this->https = new MethodsValidation($this->httpsUrl, $this->client);
-            $this->domains = new DomainsValidation($this->client, $this->domainValidators);
-            $this->ipVersion = new IpVersionValidation($this->client);
+            $this->anonymityLevel = AnonymityLevelValidation::make($this->realIp(), $this->client)->run()->anonymityLevel;
+            $this->ip = IpValidation::make($this->proxy->host, $this->client)->run();
+            $this->http = MethodsValidation::make($this->httpUrl, $this->client)->run();
+            $this->https = MethodsValidation::make($this->httpsUrl, $this->client)->run();
+            $this->domains = DomainsValidation::make($this->client)->setValidators($this->domainValidators)->run();
+            $this->ipVersion = IpVersionValidation::make($this->client)->run();
         } catch (\Throwable $e) {
             $this->valid = false;
             $this->error = new ResponseError($e);
         }
+
+        return $this;
     }
 
     private function realIp(): Host

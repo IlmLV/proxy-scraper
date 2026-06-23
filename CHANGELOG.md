@@ -25,6 +25,17 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 
 ### Changed (breaking — API)
 
+- The validation classes are now built with a static `make()` factory, configured via
+  fluent `set*()` methods, and executed by an explicit `run()` method; construction
+  performs no I/O. Optional behavioural configuration moved out of constructors into
+  setters: `ProxyValidation::setDomainValidators()`, `MethodsValidation::setRequestMethods()`,
+  `IpVersionValidation::setIpv4Url()`/`setIpv6Url()`, `DomainsValidation::setValidators()`
+  (the HTTP client stays a `make()` argument). Affects `ProxyValidation`,
+  `MethodsValidation`, `IpVersionValidation`, `DomainsValidation`, `AnonymityLevelValidation`,
+  and the per-request validations (`HeadersValidation`, `IpValidation`, `EgressValidation`,
+  `Domains\*`). For example, `new ProxyValidation($proxy, null, [ExampleCom::class])` becomes
+  `ProxyValidation::make($proxy)->setDomainValidators([ExampleCom::class])->run()`. The
+  public constructors remain available.
 - `Protocol` is now a string-backed **enum** (`Protocol::Http`, `Https`, `Socks4`,
   `Socks5`) instead of a value-object class. Build one with `Protocol::fromString($s)`
   (throws `InvalidArgumentException` on an unknown value) or `Protocol::tryFrom($s)`,

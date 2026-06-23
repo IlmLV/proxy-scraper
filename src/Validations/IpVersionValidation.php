@@ -23,9 +23,51 @@ class IpVersionValidation
     public EgressValidation $ipv4;
     public EgressValidation $ipv6;
 
-    public function __construct(?HttpClientInterface $client = null, ?string $ipv4Url = null, ?string $ipv6Url = null)
+    private ?HttpClientInterface $client;
+    private string $ipv4Url = self::IPV4_URL;
+    private string $ipv6Url = self::IPV6_URL;
+
+    public function __construct(?HttpClientInterface $client = null)
     {
-        $this->ipv4 = new EgressValidation($ipv4Url ?? self::IPV4_URL, $client);
-        $this->ipv6 = new EgressValidation($ipv6Url ?? self::IPV6_URL, $client);
+        $this->client = $client;
+    }
+
+    public static function make(?HttpClientInterface $client = null): self
+    {
+        return new self($client);
+    }
+
+    /**
+     * Override the IPv4-only probe endpoint (defaults to ValidationEndpoints::IPV4).
+     * Set before run().
+     */
+    public function setIpv4Url(string $url): self
+    {
+        $this->ipv4Url = $url;
+
+        return $this;
+    }
+
+    /**
+     * Override the IPv6-only probe endpoint (defaults to ValidationEndpoints::IPV6).
+     * Set before run().
+     */
+    public function setIpv6Url(string $url): self
+    {
+        $this->ipv6Url = $url;
+
+        return $this;
+    }
+
+    /**
+     * Probe egress for each address family (populating $ipv4 / $ipv6) and return
+     * $this. Construction performs no I/O.
+     */
+    public function run(): self
+    {
+        $this->ipv4 = EgressValidation::make($this->ipv4Url, $this->client)->run();
+        $this->ipv6 = EgressValidation::make($this->ipv6Url, $this->client)->run();
+
+        return $this;
     }
 }

@@ -6,6 +6,7 @@ namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use IlmLV\ProxyScraper\Str;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class HeadersValidation extends AbstractRequestValidation
 {
@@ -71,6 +72,11 @@ class HeadersValidation extends AbstractRequestValidation
      * @var array<string, bool>
      */
     public array $headers = [];
+
+    public static function make(string $method, string $url, ?HttpClientInterface $client = null): self
+    {
+        return new self($method, $url, $client);
+    }
 
     public function validate(): bool
     {

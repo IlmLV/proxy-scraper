@@ -44,22 +44,47 @@ class MethodsValidation implements JsonSerializable
      */
     private array $methods = [];
 
+    private string $url;
+
+    private ?HttpClientInterface $client;
+
     public ?float $latency = null;
 
-    /**
-     * @param string[]|null $requestMethods
-     */
-    public function __construct(string $url, ?HttpClientInterface $client = null, ?array $requestMethods = null)
+    public function __construct(string $url, ?HttpClientInterface $client = null)
     {
-        if ($requestMethods) {
-            $this->requestMethods = $requestMethods;
-        }
+        $this->url = $url;
+        $this->client = $client;
+    }
 
+    public static function make(string $url, ?HttpClientInterface $client = null): self
+    {
+        return new self($url, $client);
+    }
+
+    /**
+     * Restrict the HTTP methods probed (defaults to all seven). Set before run();
+     * a change afterwards applies only to a subsequent run().
+     *
+     * @param string[] $requestMethods
+     */
+    public function setRequestMethods(array $requestMethods): self
+    {
+        $this->requestMethods = $requestMethods;
+
+        return $this;
+    }
+
+    /**
+     * Run a HeadersValidation per configured method, average the latency of the
+     * ones that passed, and return $this. Construction performs no I/O.
+     */
+    public function run(): self
+    {
         $latencySum = 0.0;
         $latencyCount = 0;
 
         foreach ($this->requestMethods as $method) {
-            $validation = new HeadersValidation($method, $url, $client);
+            $validation = HeadersValidation::make($method, $this->url, $this->client)->run();
             $this->methods[strtolower($method)] = $validation;
 
             if ($validation->valid && $validation->latency !== null) {
@@ -69,6 +94,8 @@ class MethodsValidation implements JsonSerializable
         }
 
         $this->latency = $latencyCount > 0 ? $latencySum / $latencyCount : null;
+
+        return $this;
     }
 
     /**
