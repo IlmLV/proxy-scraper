@@ -25,27 +25,26 @@ final class BlogspotProxyCom extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $html = $this->httpClient->request('GET', $this->url)->getContent();
+        $html = $this->fetch();
 
-            if (strpos($html, '<?xml') === false) {
-                throw new ScraperException('Invalid XML');
-            }
+        if (strpos($html, '<?xml') === false) {
+            throw new ScraperException('Invalid XML');
+        }
 
-            $dom = simplexml_load_string($html);
-
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
+        $dom = @simplexml_load_string($html);
+        if ($dom === false) {
+            throw new ScraperException('Failed to parse XML feed');
         }
 
         foreach ($dom->entry ?? [] as $node) {
             $matches = [];
-            preg_match_all('/((('. implode('|', Protocol::ALLOWED_PROTOCOLS) .'):\/\/)?\d+\.\d+\.\d+\.\d+([:\t])\d{1,5})/m', (string)$node->content, $matches);
+            $schemes = implode('|', array_map(static fn (Protocol $p): string => $p->value, Protocol::cases()));
+            preg_match_all('/(('. $schemes .'):\/\/)?\d+\.\d+\.\d+\.\d+([:\t])\d{1,5}/m', (string)$node->content, $matches);
 
             foreach ($matches[0] as $proxyString) {
                 try {
                     $proxyString = str_replace("\t", ':', $proxyString);
-                    yield new Proxy(($this->protocol ? $this->protocol . '://' : '') . $proxyString);
+                    yield Proxy::fromString(($this->protocol ? $this->protocol . '://' : '') . $proxyString);
                 } catch (InvalidArgumentException $e) {
                     continue;
                 }

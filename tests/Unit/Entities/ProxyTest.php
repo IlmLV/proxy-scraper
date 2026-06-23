@@ -14,9 +14,9 @@ class ProxyTest extends TestCase
 {
     public function testParsesPlainProxyString(): void
     {
-        $proxy = new Proxy('http://1.2.3.4:8080');
+        $proxy = Proxy::fromString('http://1.2.3.4:8080');
 
-        $this->assertSame('http', (string) $proxy->protocol);
+        $this->assertSame('http', $proxy->protocol->value);
         $this->assertSame('1.2.3.4', (string) $proxy->host);
         $this->assertSame('8080', (string) $proxy->port);
         $this->assertNull($proxy->username);
@@ -26,9 +26,9 @@ class ProxyTest extends TestCase
 
     public function testParsesProxyStringWithCredentials(): void
     {
-        $proxy = new Proxy('socks5://user:pass@1.2.3.4:1080');
+        $proxy = Proxy::fromString('socks5://user:pass@1.2.3.4:1080');
 
-        $this->assertSame('socks5', (string) $proxy->protocol);
+        $this->assertSame('socks5', $proxy->protocol->value);
         $this->assertSame('1.2.3.4', (string) $proxy->host);
         $this->assertSame('1080', (string) $proxy->port);
         $this->assertSame('user', $proxy->username);
@@ -38,9 +38,9 @@ class ProxyTest extends TestCase
 
     public function testParsesBracketedIpv6Host(): void
     {
-        $proxy = new Proxy('http://[2001:db8::1]:8080');
+        $proxy = Proxy::fromString('http://[2001:db8::1]:8080');
 
-        $this->assertSame('http', (string) $proxy->protocol);
+        $this->assertSame('http', $proxy->protocol->value);
         $this->assertSame('2001:db8::1', (string) $proxy->host);
         $this->assertSame('8080', (string) $proxy->port);
         // IPv6 hosts are re-bracketed so the string round-trips back through parse().
@@ -49,7 +49,7 @@ class ProxyTest extends TestCase
 
     public function testParsesPasswordContainingColonAndAt(): void
     {
-        $proxy = new Proxy('socks5://user:p@ss:word@1.2.3.4:1080');
+        $proxy = Proxy::fromString('socks5://user:p@ss:word@1.2.3.4:1080');
 
         $this->assertSame('user', $proxy->username);
         $this->assertSame('p@ss:word', $proxy->password);
@@ -60,7 +60,7 @@ class ProxyTest extends TestCase
 
     public function testBuildsFromEntities(): void
     {
-        $proxy = new Proxy(new Protocol('https'), new Host('1.2.3.4'), new Port(443));
+        $proxy = new Proxy(Protocol::Https, new Host('1.2.3.4'), new Port(443));
 
         $this->assertSame('https://1.2.3.4:443', (string) $proxy);
     }
@@ -69,7 +69,7 @@ class ProxyTest extends TestCase
     public function testInvalidStringsThrow(string $value): void
     {
         $this->expectException(InvalidArgumentException::class);
-        new Proxy($value);
+        Proxy::fromString($value);
     }
 
     public static function invalidStringProvider(): array

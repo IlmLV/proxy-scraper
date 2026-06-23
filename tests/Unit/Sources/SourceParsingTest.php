@@ -26,7 +26,7 @@ class SourceParsingTest extends TestCase
         $this->assertCount(3, $proxies);
         $this->assertSame($protocol . '://1.2.3.4:8080', (string) $proxies[0]);
         foreach ($proxies as $proxy) {
-            $this->assertSame($protocol, (string) $proxy->protocol);
+            $this->assertSame($protocol, $proxy->protocol->value);
         }
     }
 

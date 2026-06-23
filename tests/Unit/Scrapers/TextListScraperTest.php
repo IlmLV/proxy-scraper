@@ -47,7 +47,7 @@ class TextListScraperTest extends TestCase
 
         $proxies = iterator_to_array($scraper->get(), false);
 
-        $this->assertSame('socks5', (string) $proxies[0]->protocol);
+        $this->assertSame('socks5', $proxies[0]->protocol->value);
     }
 
     public function testNullProtocolReadsSchemeFromEachLine(): void

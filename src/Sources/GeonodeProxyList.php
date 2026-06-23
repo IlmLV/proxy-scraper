@@ -30,11 +30,7 @@ final class GeonodeProxyList extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $response = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetch();
 
         $json = json_decode($response, true);
         $list = is_array($json) ? ($json['data'] ?? null) : null;

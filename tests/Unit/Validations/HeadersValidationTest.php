@@ -60,6 +60,20 @@ class HeadersValidationTest extends TestCase
         $this->assertTrue($validation->valid);
     }
 
+    public function testInvalidWhenResponseMissingMethodKey(): void
+    {
+        // A 200 response whose JSON omits the echoed "method" key must be reported
+        // invalid without raising an "undefined array key" warning (the suite runs
+        // with failOnWarning enabled).
+        $validation = new HeadersValidation(
+            'GET',
+            'http://whoami.serviss.it/?format=json',
+            MockClientFactory::fromString('{"accept":"application/json"}', 200)
+        );
+
+        $this->assertFalse($validation->valid);
+    }
+
     public function testInvalidWhenRequestFails(): void
     {
         $validation = new HeadersValidation(

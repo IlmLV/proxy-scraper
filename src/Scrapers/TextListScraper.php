@@ -35,7 +35,7 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
             }
 
             try {
-                $proxy = new Proxy($this->protocol === null ? $line : $this->protocol . '://' . $line);
+                $proxy = Proxy::fromString($this->protocol === null ? $line : $this->protocol . '://' . $line);
             } catch (InvalidArgumentException $e) {
                 continue;
             }

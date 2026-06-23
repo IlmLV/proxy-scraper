@@ -24,6 +24,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class MethodsValidation implements JsonSerializable
 {
+    use KeyedResultMap;
+
     /**
      * @var string[]
      */
@@ -69,14 +71,12 @@ class MethodsValidation implements JsonSerializable
         $this->latency = $latencyCount > 0 ? $latencySum / $latencyCount : null;
     }
 
-    public function __get(string $name): ?HeadersValidation
+    /**
+     * @return array<string, HeadersValidation>
+     */
+    protected function resultMap(): array
     {
-        return $this->methods[$name] ?? null;
-    }
-
-    public function __isset(string $name): bool
-    {
-        return isset($this->methods[$name]);
+        return $this->methods;
     }
 
     /**

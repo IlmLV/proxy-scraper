@@ -17,8 +17,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  */
 class IpVersionValidation
 {
-    public const IPV4_URL = 'http://ipv4.serviss.it/?format=json';
-    public const IPV6_URL = 'http://ipv6.serviss.it/?format=json';
+    public const IPV4_URL = ValidationEndpoints::IPV4;
+    public const IPV6_URL = ValidationEndpoints::IPV6;
 
     public EgressValidation $ipv4;
     public EgressValidation $ipv6;

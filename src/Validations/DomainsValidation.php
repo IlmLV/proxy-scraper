@@ -9,6 +9,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class DomainsValidation implements \JsonSerializable
 {
+    use KeyedResultMap;
+
     /** @var array<string, AbstractDomainValidation> */
     private array $validators = [];
 
@@ -31,11 +33,11 @@ class DomainsValidation implements \JsonSerializable
     }
 
     /**
-     * @return AbstractDomainValidation|null
+     * @return array<string, AbstractDomainValidation>
      */
-    public function __get(string $name): mixed
+    protected function resultMap(): array
     {
-        return $this->validators[$name] ?? null;
+        return $this->validators;
     }
 
     public function __set(string $name, mixed $value): void
@@ -43,11 +45,6 @@ class DomainsValidation implements \JsonSerializable
         if ($value instanceof AbstractDomainValidation) {
             $this->validators[$name] = $value;
         }
-    }
-
-    public function __isset(string $name): bool
-    {
-        return isset($this->validators[$name]);
     }
 
     public function __unset(string $name): void

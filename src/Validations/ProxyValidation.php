@@ -21,8 +21,8 @@ class ProxyValidation
     /** @var array<class-string<AbstractDomainValidation>> */
     private array $domainValidators;
 
-    private string $httpUrl = 'http://whoami.serviss.it/?format=json';
-    private string $httpsUrl = 'https://whoami.serviss.it/?format=json';
+    private string $httpUrl = ValidationEndpoints::WHOAMI_HTTP;
+    private string $httpsUrl = ValidationEndpoints::WHOAMI_HTTPS;
 
     public bool $valid = true;
     public ?ResponseError $error = null;
@@ -45,7 +45,7 @@ class ProxyValidation
      */
     public function __construct(Proxy|string $proxy, ?HttpClientInterface $client = null, array $domainValidators = [])
     {
-        $this->proxy = is_string($proxy) ? new Proxy($proxy) : $proxy;
+        $this->proxy = is_string($proxy) ? Proxy::fromString($proxy) : $proxy;
         $this->domainValidators = $domainValidators;
 
         $this->client = $client ?? HttpClient::create([

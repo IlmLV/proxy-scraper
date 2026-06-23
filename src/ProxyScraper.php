@@ -53,7 +53,7 @@ abstract class ProxyScraper
     /**
      * @param array<string, mixed> $options
      */
-    private function loadOptions(array &$options = []): void
+    private function loadOptions(array $options): void
     {
         foreach ($options as $key => $value) {
             $methodName = Str::snakeToCamel('set_'. $key);
@@ -87,22 +87,38 @@ abstract class ProxyScraper
         $url = $values === [] ? $this->url : sprintf($this->url, ...$values);
 
         if ($this->options) {
-            $url .= '?' . http_build_query($this->options);
+            // Several sources already carry a query string (e.g. pubproxy.com's
+            // "?limit=5&format=json"); append with "&" in that case so configured
+            // options don't produce a second, URL-breaking "?".
+            $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($this->options);
         }
 
         return $url;
     }
 
     /**
-     * GET the built source URL and return the response body, translating any
-     * transport/HTTP failure into a ScraperException.
+     * GET the built source URL (see {@see getUrl()}) and return the response
+     * body, translating any transport/HTTP failure into a ScraperException.
      *
      * @throws ScraperException
      */
     protected function fetch(): string
     {
+        return $this->fetchUrl($this->getUrl());
+    }
+
+    /**
+     * GET an explicit URL and return the response body, translating any
+     * transport/HTTP failure into a ScraperException. Use this for sources that
+     * fetch more than one endpoint (e.g. an index then a detail URL); the
+     * no-argument {@see fetch()} covers the common single-URL case.
+     *
+     * @throws ScraperException
+     */
+    protected function fetchUrl(string $url): string
+    {
         try {
-            return $this->httpClient->request('GET', $this->getUrl())->getContent();
+            return $this->httpClient->request('GET', $url)->getContent();
         } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
@@ -111,8 +127,8 @@ abstract class ProxyScraper
     /**
      * @throws Exceptions\InvalidArgumentException
      */
-    protected function makeProxy(string $ip, int|string $port, string $protocol): Proxy
+    protected function makeProxy(string $host, int|string $port, string $protocol): Proxy
     {
-        return new Proxy(new Protocol($protocol), new Host($ip), new Port($port));
+        return new Proxy(Protocol::fromString($protocol), new Host($host), new Port($port));
     }
 }

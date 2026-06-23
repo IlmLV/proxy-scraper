@@ -21,45 +21,45 @@ class LoadProxies
      * @var array<int, class-string<ProxyScraper&ScraperInterface>>
      */
     private array $scrapers = [
-        \IlmLV\ProxyScraper\Sources\AliilaproProxyListHttp::class,
-        \IlmLV\ProxyScraper\Sources\AliilaproProxyListSocks4::class,
-        \IlmLV\ProxyScraper\Sources\AliilaproProxyListSocks5::class,
-        \IlmLV\ProxyScraper\Sources\BlogspotProxyCom::class,
-        \IlmLV\ProxyScraper\Sources\CheckerProxyNet::class,
-        \IlmLV\ProxyScraper\Sources\ClarketmProxyList::class,
-        \IlmLV\ProxyScraper\Sources\FreeProxyListNet::class,
-        \IlmLV\ProxyScraper\Sources\FreeProxyListNetAnonymousProxy::class,
-        \IlmLV\ProxyScraper\Sources\FreeProxyListNetUkProxy::class,
-        \IlmLV\ProxyScraper\Sources\FreeProxyWorld::class,
-        \IlmLV\ProxyScraper\Sources\GeonodeProxyList::class,
-        \IlmLV\ProxyScraper\Sources\HookzofSocks5List::class,
-        \IlmLV\ProxyScraper\Sources\Mmpx12ProxyList::class,
-        \IlmLV\ProxyScraper\Sources\MonosansProxyListHttp::class,
-        \IlmLV\ProxyScraper\Sources\ProxiflyProxyList::class,
-        \IlmLV\ProxyScraper\Sources\Proxy11::class,
-        \IlmLV\ProxyScraper\Sources\ProxyListPlusHttp::class,
-        \IlmLV\ProxyScraper\Sources\ProxyScrapeComHttp::class,
-        \IlmLV\ProxyScraper\Sources\ProxyScrapeComSocks4::class,
-        \IlmLV\ProxyScraper\Sources\ProxyScrapeComSocks5::class,
-        \IlmLV\ProxyScraper\Sources\PubProxyCom::class,
-        \IlmLV\ProxyScraper\Sources\RoosterkidOpenProxyListHttps::class,
-        \IlmLV\ProxyScraper\Sources\RoosterkidOpenProxyListSocks4::class,
-        \IlmLV\ProxyScraper\Sources\RoosterkidOpenProxyListSocks5::class,
-        \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListHttp::class,
-        \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListHttps::class,
-        \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks4::class,
-        \IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks5::class,
-        \IlmLV\ProxyScraper\Sources\SocksProxyNet::class,
-        \IlmLV\ProxyScraper\Sources\SpysMeProxyList::class,
-        \IlmLV\ProxyScraper\Sources\SslProxiesOrg::class,
-        \IlmLV\ProxyScraper\Sources\TheSpeedXProxyListHttp::class,
-        \IlmLV\ProxyScraper\Sources\TheSpeedXProxyListSocks4::class,
-        \IlmLV\ProxyScraper\Sources\TheSpeedXProxyListSocks5::class,
-        \IlmLV\ProxyScraper\Sources\UsProxyOrg::class,
-        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListHttp::class,
-        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListHttps::class,
-        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListSocks4::class,
-        \IlmLV\ProxyScraper\Sources\VakhovFreshProxyListSocks5::class,
+        Sources\AliilaproProxyListHttp::class,
+        Sources\AliilaproProxyListSocks4::class,
+        Sources\AliilaproProxyListSocks5::class,
+        Sources\BlogspotProxyCom::class,
+        Sources\CheckerProxyNet::class,
+        Sources\ClarketmProxyList::class,
+        Sources\FreeProxyListNet::class,
+        Sources\FreeProxyListNetAnonymousProxy::class,
+        Sources\FreeProxyListNetUkProxy::class,
+        Sources\FreeProxyWorld::class,
+        Sources\GeonodeProxyList::class,
+        Sources\HookzofSocks5List::class,
+        Sources\Mmpx12ProxyList::class,
+        Sources\MonosansProxyListHttp::class,
+        Sources\ProxiflyProxyList::class,
+        Sources\Proxy11::class,
+        Sources\ProxyListPlusHttp::class,
+        Sources\ProxyScrapeComHttp::class,
+        Sources\ProxyScrapeComSocks4::class,
+        Sources\ProxyScrapeComSocks5::class,
+        Sources\PubProxyCom::class,
+        Sources\RoosterkidOpenProxyListHttps::class,
+        Sources\RoosterkidOpenProxyListSocks4::class,
+        Sources\RoosterkidOpenProxyListSocks5::class,
+        Sources\ShiftyTRProxyListHttp::class,
+        Sources\ShiftyTRProxyListHttps::class,
+        Sources\ShiftyTRProxyListSocks4::class,
+        Sources\ShiftyTRProxyListSocks5::class,
+        Sources\SocksProxyNet::class,
+        Sources\SpysMeProxyList::class,
+        Sources\SslProxiesOrg::class,
+        Sources\TheSpeedXProxyListHttp::class,
+        Sources\TheSpeedXProxyListSocks4::class,
+        Sources\TheSpeedXProxyListSocks5::class,
+        Sources\UsProxyOrg::class,
+        Sources\VakhovFreshProxyListHttp::class,
+        Sources\VakhovFreshProxyListHttps::class,
+        Sources\VakhovFreshProxyListSocks4::class,
+        Sources\VakhovFreshProxyListSocks5::class,
     ];
 
     /**
@@ -105,6 +105,17 @@ class LoadProxies
     public function get(): array
     {
         return $this->proxies->get();
+    }
+
+    /**
+     * Scraped proxies flattened across every source with duplicates removed.
+     * See {@see ScrapedProxyList::unique()}.
+     *
+     * @return Proxy[]
+     */
+    public function unique(): array
+    {
+        return $this->proxies->unique();
     }
 
     /**
@@ -176,9 +187,12 @@ class LoadProxies
     }
 
     /**
+     * Run a single registered scraper, storing its proxies or capturing the
+     * exception it raised. Internal step driven by all()/scheduled()/only().
+     *
      * @param class-string<ProxyScraper&ScraperInterface> $scraper
      */
-    public function run(string $scraper): void
+    private function run(string $scraper): void
     {
         $config = $this->scraperConfig[$scraper] ?? [];
 

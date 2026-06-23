@@ -62,6 +62,24 @@ foreach ($proxies->get() as $proxy) {
 dump($proxies->stats());
 ```
 
+### Get a deduplicated set
+
+Sources overlap heavily, so the same proxy is often returned by several of them.
+`get()` returns every occurrence (and is what `stats()` counts); `unique()` returns
+the same proxies flattened across all sources with exact duplicates removed. Two
+proxies are equal when their string form (`protocol://[user:pass@]host:port`) matches,
+so the same endpoint reached over a different protocol is kept.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::init()->all();
+
+foreach ($proxies->unique() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
 ### Scrape a single source
 
 ```php

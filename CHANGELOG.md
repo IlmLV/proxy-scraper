@@ -25,6 +25,18 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 
 ### Changed (breaking — API)
 
+- `Protocol` is now a string-backed **enum** (`Protocol::Http`, `Https`, `Socks4`,
+  `Socks5`) instead of a value-object class. Build one with `Protocol::fromString($s)`
+  (throws `InvalidArgumentException` on an unknown value) or `Protocol::tryFrom($s)`,
+  and read the string via `->value`. `(string) $protocol` no longer works — PHP enums
+  are not `Stringable`. The `Protocol::ALLOWED_PROTOCOLS` constant is removed; use
+  `Protocol::cases()`.
+- `Proxy`'s constructor now accepts **only value objects**:
+  `new Proxy(Protocol $protocol, Host $host, Port $port, ?string $username, ?string $password)`.
+  Parse a `"protocol://[user:pass@]host:port"` string with the new
+  `Proxy::fromString(string): self` named constructor instead of `new Proxy('http://…')`.
+- `LoadProxies::run()` is now `private` — it is an internal step. Run scrapers via
+  `all()`, `scheduled()`, or `only()` / `add()->all()`.
 - `Host::$ip` (a public property) has been **removed** in favour of `Host::ip(): ?string`.
   Resolution is now lazy — no DNS lookup happens during construction — and returns
   `null` when a hostname cannot be resolved instead of silently echoing the input back.
@@ -36,11 +48,23 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 
 ### Added
 
-- `Port::$value` (`int`) and `Protocol::$value` (`string`) expose the underlying
-  value directly, complementing `__toString()` and matching `Host`'s public surface.
+- `ScrapedProxyList::unique()` and `LoadProxies::unique()` return every scraped proxy
+  flattened across all sources with exact duplicates removed (sources overlap heavily).
+  `get()` still returns every occurrence and remains what `stats()` counts.
+- `Port::$value` (`int`) exposes the underlying value directly, complementing
+  `__toString()` and matching `Host`'s public surface. (`Protocol`'s value is its enum
+  backing value, `Protocol::Http->value` — see the breaking-API note above.)
 
 ### Fixed (behaviour)
 
+- A source whose URL already carries a query string (e.g. `pubproxy.com`'s
+  `?limit=5&format=json`) no longer produces a malformed, double-`?` URL when
+  `scraperConfig` options are supplied — the options are now appended with `&`.
+- `HeadersValidation` no longer raises an "undefined array key" warning (and is
+  correctly reported invalid) when a 200 response's JSON omits the echoed `method`
+  key.
+- `AnonymityLevelValidation` now uses strict comparisons when scanning the echo
+  response for the real IP and proxy-revealing header names.
 - Result properties on the request validations now read as `null` on the failure
   path instead of throwing "must not be accessed before initialization":
   `AbstractRequestValidation::$latency` and `IpValidation::$countryIsoCode` /
@@ -68,6 +92,19 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 
 ### Internal
 
+- The four custom-`get()` sources (geonode, spys.me, blogspot, checkerproxy.net) now
+  fetch through the shared `ProxyScraper::fetch()` / new `fetchUrl()` helper instead of
+  re-implementing the GET-and-wrap-errors boilerplate; their requests now also honour
+  `scraperConfig` query parameters like the other sources.
+- The serviss.it validation endpoints (whoami / ip / ipv4 / ipv6) are centralised in a
+  new `Validations\ValidationEndpoints` instead of being duplicated across the
+  validations.
+- The two validation aggregators (`MethodsValidation`, `DomainsValidation`) share their
+  read accessors through a new `KeyedResultMap` trait.
+- `AnonymityLevelValidation` extracts its proxy-header detection and empty-response
+  description into private methods (dropping an inline `call_user_func` closure) and
+  raises a domain `ValidatorException` internally instead of a generic `\Exception`.
+- `RandomUserAgent` is now `final` and its user-agent list a class constant.
 - `Proxy` string parsing is extracted from the constructor into a dedicated parser.
 - `ProxyScraper` base class is now `abstract` and exposes a shared `fetch()` helper;
   the four scrapers no longer duplicate the GET-and-wrap-errors boilerplate.

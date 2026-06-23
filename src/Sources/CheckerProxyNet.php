@@ -30,11 +30,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
     {
         $date = $this->latestArchiveDate();
 
-        try {
-            $response = $this->httpClient->request('GET', $this->url . '/' . $date)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetchUrl($this->url . '/' . $date);
 
         $json = json_decode($response, true);
         $data = is_array($json) ? ($json['data'] ?? null) : null;
@@ -49,7 +45,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
                 continue;
             }
             try {
-                yield new Proxy($this->protocol . '://' . $address);
+                yield Proxy::fromString($this->protocol . '://' . $address);
             } catch (InvalidArgumentException $e) {
                 continue;
             }
@@ -64,11 +60,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
      */
     private function latestArchiveDate(): string
     {
-        try {
-            $response = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetchUrl($this->url);
 
         $json = json_decode($response, true);
         $data = is_array($json) ? ($json['data'] ?? null) : null;

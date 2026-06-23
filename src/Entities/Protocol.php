@@ -6,30 +6,23 @@ namespace IlmLV\ProxyScraper\Entities;
 
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 
-final class Protocol
+enum Protocol: string
 {
-    public const ALLOWED_PROTOCOLS = [
-        'http',
-        'https',
-        'socks4',
-        'socks5',
-    ];
-
-    public readonly string $value;
+    case Http = 'http';
+    case Https = 'https';
+    case Socks4 = 'socks4';
+    case Socks5 = 'socks5';
 
     /**
+     * Resolve a protocol name to its case, throwing the library's own
+     * {@see InvalidArgumentException} (rather than the native \ValueError) on an
+     * unknown value, so callers keep catching a single exception type.
+     *
      * @throws InvalidArgumentException
      */
-    public function __construct(string $protocol)
+    public static function fromString(string $protocol): self
     {
-        if (!in_array($protocol, self::ALLOWED_PROTOCOLS, true)) {
-            throw new InvalidArgumentException('Unknown protocol: ' . $protocol);
-        }
-        $this->value = $protocol;
-    }
-
-    public function __toString(): string
-    {
-        return $this->value;
+        return self::tryFrom($protocol)
+            ?? throw new InvalidArgumentException('Unknown protocol: ' . $protocol);
     }
 }

@@ -6,6 +6,7 @@ use IlmLV\ProxyScraper\Exceptions\ProxyScraperException;
 use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\Sources\ClarketmProxyList;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
+use IlmLV\ProxyScraper\Sources\MonosansProxyListHttp;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\Response\MockResponse;
@@ -72,6 +73,22 @@ class LoadProxiesTest extends TestCase
         $loader->all();
         $this->assertCount(2, $loader->get());
         $this->assertSame([FreeProxyListNet::class => ['http' => 2]], $loader->stats());
+    }
+
+    public function testUniqueDeduplicatesAcrossSources(): void
+    {
+        // Two http text-list sources both return the same single proxy; get()
+        // yields it twice, unique() collapses it to one.
+        $client = MockClientFactory::router(
+            fn (): MockResponse => new MockResponse("1.2.3.4:8080\n")
+        );
+
+        $proxies = LoadProxies::init([], $client)
+            ->only([ClarketmProxyList::class, MonosansProxyListHttp::class]);
+
+        $this->assertCount(2, $proxies->get());
+        $this->assertCount(1, $proxies->unique());
+        $this->assertSame('http://1.2.3.4:8080', (string) $proxies->unique()[0]);
     }
 
     public function testSchedulerIsDueForWildcardSchedule(): void

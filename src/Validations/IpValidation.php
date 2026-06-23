@@ -10,7 +10,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IpValidation extends AbstractRequestValidation
 {
-    public const URL = 'http://ip.serviss.it/?format=json';
+    public const URL = ValidationEndpoints::IP;
 
     private Host $proxyHost;
 

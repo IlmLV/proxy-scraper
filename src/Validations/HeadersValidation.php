@@ -94,10 +94,10 @@ class HeadersValidation extends AbstractRequestValidation
 
                 foreach ($requestHeaders as $key => $value) {
                     $responseKey = Str::kebabToSnake(strtolower($key));
-                    $this->headers[$key] = isset($responseAttr[$responseKey]) ? ($responseAttr[$responseKey] === $value ? true : false) : false;
+                    $this->headers[$key] = isset($responseAttr[$responseKey]) && $responseAttr[$responseKey] === $value;
                 }
 
-                return $response->getStatusCode() === 200 && $responseAttr['method'] === $this->method;
+                return $response->getStatusCode() === 200 && ($responseAttr['method'] ?? null) === $this->method;
             }
         } catch (\Throwable $e) {
             $this->error = new ResponseError($e);

@@ -18,43 +18,22 @@ final class Proxy
 
     public readonly ?string $password;
 
-    /**
-     * Construct from value objects, or pass a single proxy string
-     * ("protocol://[user:pass@]host:port") to have it parsed.
-     *
-     * @throws InvalidArgumentException
-     */
-    public function __construct(Protocol|string $mixed, ?Host $host = null, ?Port $port = null, ?string $username = null, ?string $password = null)
+    public function __construct(Protocol $protocol, Host $host, Port $port, ?string $username = null, ?string $password = null)
     {
-        if ($mixed instanceof Protocol) {
-            if ($host === null || $port === null) {
-                throw new InvalidArgumentException('Host and port are required when constructing from a Protocol instance');
-            }
-            $this->protocol = $mixed;
-            $this->host = $host;
-            $this->port = $port;
-            $this->username = $username;
-            $this->password = $password;
-
-            return;
-        }
-
-        $parsed = self::parse($mixed);
-        $this->protocol = $parsed['protocol'];
-        $this->host = $parsed['host'];
-        $this->port = $parsed['port'];
-        $this->username = $parsed['username'];
-        $this->password = $parsed['password'];
+        $this->protocol = $protocol;
+        $this->host = $host;
+        $this->port = $port;
+        $this->username = $username;
+        $this->password = $password;
     }
 
     /**
-     * Parse a "protocol://[user:pass@]host:port" string into its components.
+     * Build a Proxy from a "protocol://[user:pass@]host:port" string.
      * IPv6 hosts must be bracketed, e.g. "http://[::1]:8080".
      *
-     * @return array{protocol: Protocol, host: Host, port: Port, username: ?string, password: ?string}
      * @throws InvalidArgumentException
      */
-    private static function parse(string $proxy): array
+    public static function fromString(string $proxy): self
     {
         $protocolAddress = explode('://', $proxy, 2);
         if (count($protocolAddress) !== 2) {
@@ -85,13 +64,13 @@ final class Proxy
 
         [$host, $port] = self::splitHostPort($address);
 
-        return [
-            'protocol' => new Protocol($protocol),
-            'host' => new Host($host),
-            'port' => new Port($port),
-            'username' => $username,
-            'password' => $password,
-        ];
+        return new self(
+            Protocol::fromString($protocol),
+            new Host($host),
+            new Port($port),
+            $username,
+            $password,
+        );
     }
 
     /**
@@ -125,12 +104,12 @@ final class Proxy
     public function __toString(): string
     {
         $host = (string) $this->host;
-        // Re-bracket IPv6 literals so the result round-trips back through parse().
+        // Re-bracket IPv6 literals so the result round-trips back through fromString().
         if (str_contains($host, ':')) {
             $host = '[' . $host . ']';
         }
 
-        return $this->protocol . '://'
+        return $this->protocol->value . '://'
             . ($this->username ? $this->username . ($this->password ? ':' . $this->password : '') . '@' : '')
             . $host . ':' . $this->port;
     }
