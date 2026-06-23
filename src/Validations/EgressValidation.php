@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -37,7 +38,7 @@ class EgressValidation extends AbstractRequestValidation
             $response = $this->request($this->method, $this->url);
             $body = json_decode($response->getContent(), true);
 
-            $ip = is_array($body) ? ($body['ip'] ?? null) : null;
+            $ip = Arr::get($body, 'ip');
             $this->ip = is_string($ip) ? $ip : null;
 
             return $response->getStatusCode() === 200 && is_string($ip);

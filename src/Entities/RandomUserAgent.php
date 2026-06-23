@@ -40,7 +40,7 @@ final class RandomUserAgent
         'Mozilla/5.0 (iPad; CPU OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1',
     ];
 
-    public function __toString(): string
+    public static function random(): string
     {
         return self::USER_AGENTS[array_rand(self::USER_AGENTS)];
     }

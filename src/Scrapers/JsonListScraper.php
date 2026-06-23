@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Scrapers;
 
 use Generator;
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
 /**
  * Base for sources whose endpoint returns a JSON array of proxy objects.
@@ -19,7 +19,7 @@ use IlmLV\ProxyScraper\ScraperInterface;
  *                         when the response body is itself the array.
  * - JSON field names      via {@see JsonFieldMapping} ($hostProperty etc.).
  */
-abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
+abstract class JsonListScraper extends ProxyScraper
 {
     use JsonFieldMapping;
 
@@ -34,8 +34,8 @@ abstract class JsonListScraper extends ProxyScraper implements ScraperInterface
         $response = $this->fetch();
 
         $json = json_decode($response, true);
-        $list = $this->listPath
-            ? (is_array($json) ? ($json[$this->listPath] ?? null) : null)
+        $list = $this->listPath !== null
+            ? Arr::get($json, $this->listPath)
             : $json;
 
         if (!is_array($list)) {

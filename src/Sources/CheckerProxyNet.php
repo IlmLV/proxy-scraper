@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Sources;
 
 use Generator;
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
+final class CheckerProxyNet extends ProxyScraper
 {
     protected string $url = 'https://api.checkerproxy.net/v1/landing/archive';
     public const SCHEDULE = '0 0 * * *';
@@ -33,8 +33,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
         $response = $this->fetchUrl($this->url . '/' . $date);
 
         $json = json_decode($response, true);
-        $data = is_array($json) ? ($json['data'] ?? null) : null;
-        $proxyList = is_array($data) ? ($data['proxyList'] ?? null) : null;
+        $proxyList = Arr::get($json, 'data.proxyList');
 
         if (!is_array($proxyList)) {
             throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');
@@ -63,10 +62,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
         $response = $this->fetchUrl($this->url);
 
         $json = json_decode($response, true);
-        $data = is_array($json) ? ($json['data'] ?? null) : null;
-        $items = is_array($data) ? ($data['items'] ?? null) : null;
-        $first = is_array($items) ? ($items[0] ?? null) : null;
-        $date = is_array($first) ? ($first['date'] ?? null) : null;
+        $date = Arr::get($json, 'data.items.0.date');
 
         if (!is_string($date)) {
             throw new ScraperException('Failed to resolve latest archive date, response (' . $response . ')');

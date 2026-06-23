@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Entities\RandomUserAgent;
@@ -13,7 +14,7 @@ use IlmLV\ProxyScraper\Validations\Domains\AbstractDomainValidation;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class ProxyValidation
+class ProxyValidation implements ValidationInterface
 {
     private Proxy $proxy;
     protected HttpClientInterface $client;
@@ -50,7 +51,7 @@ class ProxyValidation
             'verify_host' => false,
             'headers' => [
                 'Accept-Language' => 'en-US,en;q=0.5',
-                'User-Agent' => new RandomUserAgent(),
+                'User-Agent' => RandomUserAgent::random(),
             ],
             'proxy' => $this->proxy,
         ]);
@@ -108,7 +109,7 @@ class ProxyValidation
         ]);
 
         $body = json_decode($response->getContent(), true);
-        $ip = is_array($body) ? ($body['ip'] ?? null) : null;
+        $ip = Arr::get($body, 'ip');
 
         if (!is_string($ip)) {
             throw new InvalidArgumentException('Failed to resolve real IP from response');

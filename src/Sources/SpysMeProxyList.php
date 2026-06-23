@@ -9,7 +9,6 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
 /**
  * spys.me runs its own scanner and serves a whitespace-separated list:
@@ -17,7 +16,7 @@ use IlmLV\ProxyScraper\ScraperInterface;
  * We take the first token of each line as ip:port; banner lines fail the Proxy
  * parse and are skipped automatically. The list is HTTP(S) proxies.
  */
-final class SpysMeProxyList extends ProxyScraper implements ScraperInterface
+final class SpysMeProxyList extends ProxyScraper
 {
     protected string $url = 'https://spys.me/proxy.txt';
 

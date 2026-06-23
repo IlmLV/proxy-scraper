@@ -53,7 +53,7 @@ The snippets below assume Composer's autoloader is already loaded
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->all();
+$proxies = LoadProxies::make()->all();
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -73,7 +73,7 @@ so the same endpoint reached over a different protocol is kept.
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->all();
+$proxies = LoadProxies::make()->all();
 
 foreach ($proxies->unique() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -86,7 +86,7 @@ foreach ($proxies->unique() as $proxy) {
 use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 
-$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+$proxies = LoadProxies::make()->only(FreeProxyListNet::class);
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -102,7 +102,7 @@ provider on every tick.
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->scheduled();
+$proxies = LoadProxies::make()->scheduled();
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -114,7 +114,7 @@ foreach ($proxies->get() as $proxy) {
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->all();
+$proxies = LoadProxies::make()->all();
 
 foreach ($proxies->stats() as $source => $results) {
     echo $source . ' => ' . json_encode($results) . PHP_EOL;
@@ -143,7 +143,7 @@ $scraperConfig = [
 
 $httpClient = HttpClient::create(['timeout' => 30]);
 
-$proxies = LoadProxies::init($scraperConfig, $httpClient)
+$proxies = LoadProxies::make($scraperConfig, $httpClient)
     ->only(PubProxyCom::class);
 
 dump($proxies->stats());
@@ -167,7 +167,7 @@ $scraperConfig = [
     ],
 ];
 
-$proxies = LoadProxies::init($scraperConfig)->only(PubProxyCom::class);
+$proxies = LoadProxies::make($scraperConfig)->only(PubProxyCom::class);
 
 foreach ($proxies->errors() as $scraper => $exception) {
     echo $scraper . ' => ' . $exception->getMessage() . PHP_EOL;
@@ -219,20 +219,20 @@ Currently supported source data types:
 
 ### Define a custom source
 
-Extend one of the scraper base types, point `$url` at the resource, and hand the
-class to `only()`/`add()` — there is no need to register it in `LoadProxies`:
+Extend one of the scraper base types (each already implements `ScraperInterface`
+via `ProxyScraper`), point `$url` at the resource, and hand the class to
+`only()`/`add()` — there is no need to register it in `LoadProxies`:
 
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\JsonScraper;
 
-class CustomGimmeProxy extends JsonScraper implements ScraperInterface
+class CustomGimmeProxy extends JsonScraper
 {
     protected string $url = 'https://gimmeproxy.com/api/getProxy';
 }
 
-$proxies = LoadProxies::init()->only(CustomGimmeProxy::class);
+$proxies = LoadProxies::make()->only(CustomGimmeProxy::class);
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -336,7 +336,7 @@ use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 
-$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+$proxies = LoadProxies::make()->only(FreeProxyListNet::class);
 
 foreach ($proxies->get() as $proxy) {
     $validation = ProxyValidation::make($proxy)->run();

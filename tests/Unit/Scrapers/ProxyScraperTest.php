@@ -2,6 +2,7 @@
 
 namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
+use Generator;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\Tests\Support\StubScraper;
@@ -49,6 +50,11 @@ class ProxyScraperTest extends TestCase
             public function buildUrl(): string
             {
                 return $this->getUrl();
+            }
+
+            public function get(): Generator
+            {
+                yield from [];
             }
         };
 

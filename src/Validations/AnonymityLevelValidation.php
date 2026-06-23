@@ -7,10 +7,9 @@ namespace IlmLV\ProxyScraper\Validations;
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use IlmLV\ProxyScraper\Exceptions\ValidatorException;
-use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class AnonymityLevelValidation
+class AnonymityLevelValidation extends AbstractRequestValidation
 {
     public const URL = ValidationEndpoints::WHOAMI_HTTP;
 
@@ -24,18 +23,15 @@ class AnonymityLevelValidation
     /** Substrings in an echo-response key that betray the use of a proxy. */
     private const PROXY_HEADER_PREFIXES = ['proxy', 'x_proxy', 'forwarded', 'x_forwarded'];
 
-    protected HttpClientInterface $client;
-
     private Host $hostIp;
 
     public ?string $anonymityLevel = null;
 
-    public ?ResponseError $error = null;
-
     public function __construct(Host $hostIp, ?HttpClientInterface $client = null)
     {
         $this->hostIp = $hostIp;
-        $this->client = $client ?? HttpClient::create();
+
+        parent::__construct('GET', self::URL, $client);
     }
 
     public static function make(Host $hostIp, ?HttpClientInterface $client = null): self
@@ -44,32 +40,15 @@ class AnonymityLevelValidation
     }
 
     /**
-     * Determine the anonymity level (populating $anonymityLevel / $error) and
-     * return $this. Construction performs no I/O.
+     * Probe the echo endpoint and classify the proxy's anonymity, populating
+     * $anonymityLevel (elite/anonymous/exposed, or null on failure). Returns
+     * whether the proxy hides the real IP — an exposed proxy or a failed probe
+     * is not "valid". Invoked by the inherited run().
      */
-    public function run(): self
-    {
-        $this->anonymityLevel = $this->anonymityLevel();
-
-        return $this;
-    }
-
-    /**
-     * @throws ValidatorException
-     */
-    public function __toString(): string
-    {
-        if (!$this->anonymityLevel) {
-            throw new ValidatorException((string) $this->error);
-        }
-
-        return $this->anonymityLevel;
-    }
-
-    public function anonymityLevel(): ?string
+    public function validate(): bool
     {
         try {
-            $response = $this->client->request('GET', self::URL);
+            $response = $this->request('GET', self::URL);
             $content = $response->getContent();
             $body = json_decode($content, true);
 
@@ -81,14 +60,16 @@ class AnonymityLevelValidation
 
             // Our real IP appearing in the echo (or a non-200) means it leaked.
             if ($response->getStatusCode() !== 200 || in_array((string) $this->hostIp, $body, true)) {
-                return self::EXPOSED;
+                $this->anonymityLevel = self::EXPOSED;
+            } else {
+                // Real IP hidden: elite unless the proxy still announced itself via a header.
+                $this->anonymityLevel = $this->hasProxyHeader($body) ? self::ANONYMOUS : self::ELITE;
             }
 
-            // Real IP hidden: elite unless the proxy still announced itself via a header.
-            return $this->hasProxyHeader($body) ? self::ANONYMOUS : self::ELITE;
+            return $this->anonymityLevel !== self::EXPOSED;
         } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
-            return null;
+            return false;
         }
     }
 

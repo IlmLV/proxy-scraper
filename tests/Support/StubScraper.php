@@ -2,6 +2,7 @@
 
 namespace IlmLV\ProxyScraper\Tests\Support;
 
+use Generator;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\ProxyScraper;
 
@@ -15,6 +16,12 @@ class StubScraper extends ProxyScraper
 
     /** Set through the set_* option-routing mechanism in loadOptions(). */
     public ?string $fooBar = null;
+
+    /** @return Generator<int, Proxy> */
+    public function get(): Generator
+    {
+        yield from [];
+    }
 
     public function setFooBar($value): void
     {

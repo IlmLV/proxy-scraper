@@ -9,7 +9,6 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 use Symfony\Component\DomCrawler\Crawler as Dom;
 
 /**
@@ -21,7 +20,7 @@ use Symfony\Component\DomCrawler\Crawler as Dom;
  * - $protocol             fixed protocol for every row; when null it is read from
  *                         column $colProtocol instead.
  */
-abstract class TableListScraper extends ProxyScraper implements ScraperInterface
+abstract class TableListScraper extends ProxyScraper
 {
     protected ?string $protocol = null;
     protected string $rowPath = 'table tbody tr';

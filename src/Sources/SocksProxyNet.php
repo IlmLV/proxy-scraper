@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
-final class SocksProxyNet extends TableListScraper implements ScraperInterface
+final class SocksProxyNet extends TableListScraper
 {
     protected string $url = 'https://www.socks-proxy.net/';
 

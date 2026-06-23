@@ -8,6 +8,7 @@ use Cron\CronExpression;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Entities\ScrapedProxyList;
 use IlmLV\ProxyScraper\Exceptions\ProxyScraperException;
+use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -18,7 +19,7 @@ class LoadProxies
     protected HttpClientInterface $httpClient;
 
     /**
-     * @var array<int, class-string<ProxyScraper&ScraperInterface>>
+     * @var array<int, class-string<ProxyScraper>>
      */
     private array $scrapers = [
         Sources\AliilaproProxyListHttp::class,
@@ -89,7 +90,7 @@ class LoadProxies
     /**
      * @param array<string, array<string, mixed>> $scraperConfig
      */
-    public static function init(array $scraperConfig = [], ?HttpClientInterface $httpClient = null): LoadProxies
+    public static function make(array $scraperConfig = [], ?HttpClientInterface $httpClient = null): LoadProxies
     {
         return new self($scraperConfig, $httpClient);
     }
@@ -166,7 +167,7 @@ class LoadProxies
      * Builder: register one or more extra scrapers (deduplicated) without running
      * anything. Follow with all()/scheduled() to execute.
      *
-     * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
+     * @param array<int, class-string<ProxyScraper>>|class-string<ProxyScraper> $scrapers
      */
     public function add(array|string $scrapers): self
     {
@@ -178,7 +179,7 @@ class LoadProxies
      * Restrict the registered set to exactly the given scraper(s) and run them
      * immediately, returning $this for result access.
      *
-     * @param array<int, class-string<ProxyScraper&ScraperInterface>>|class-string<ProxyScraper&ScraperInterface> $scrapers
+     * @param array<int, class-string<ProxyScraper>>|class-string<ProxyScraper> $scrapers
      */
     public function only(array|string $scrapers): self
     {
@@ -190,7 +191,7 @@ class LoadProxies
      * Run a single registered scraper, storing its proxies or capturing the
      * exception it raised. Internal step driven by all()/scheduled()/only().
      *
-     * @param class-string<ProxyScraper&ScraperInterface> $scraper
+     * @param class-string<ProxyScraper> $scraper
      */
     private function run(string $scraper): void
     {
@@ -202,6 +203,12 @@ class LoadProxies
             $this->proxies->push($scraper, iterator_to_array($result, false));
         } catch (ProxyScraperException $e) {
             $this->errors[$scraper] = $e;
+        } catch (\Throwable $e) {
+            // Honor the "a failing source never aborts the batch" guarantee even
+            // when a source throws something other than a ProxyScraperException
+            // (e.g. a custom scraper raising a \TypeError/\RuntimeException): wrap
+            // it so errors() stays uniformly typed and the original is preserved.
+            $this->errors[$scraper] = new ScraperException($e->getMessage(), (int) $e->getCode(), $e);
         }
     }
 

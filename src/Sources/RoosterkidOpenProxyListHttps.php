@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class RoosterkidOpenProxyListHttps extends TextListScraper implements ScraperInterface
+final class RoosterkidOpenProxyListHttps extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/roosterkid/openproxylist/main/HTTPS_RAW.txt';
 

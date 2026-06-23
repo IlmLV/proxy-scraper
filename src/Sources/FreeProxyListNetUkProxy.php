@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
-final class FreeProxyListNetUkProxy extends TableListScraper implements ScraperInterface
+final class FreeProxyListNetUkProxy extends TableListScraper
 {
     protected string $url = 'https://free-proxy-list.net/uk-proxy.html';
 

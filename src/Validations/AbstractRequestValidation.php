@@ -10,7 +10,7 @@ use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-abstract class AbstractRequestValidation
+abstract class AbstractRequestValidation implements ValidationInterface
 {
     protected HttpClientInterface $client;
 

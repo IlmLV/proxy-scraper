@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class TheSpeedXProxyListHttp extends TextListScraper implements ScraperInterface
+final class TheSpeedXProxyListHttp extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/http.txt';
 

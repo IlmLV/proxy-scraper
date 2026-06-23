@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
@@ -38,10 +39,9 @@ class IpValidation extends AbstractRequestValidation
             $response = $this->request('GET', self::URL);
             $body = json_decode($response->getContent(), true);
 
-            $country = is_array($body) ? ($body['country'] ?? null) : null;
-            $countryIsoCode = is_array($country) ? ($country['iso_code'] ?? null) : null;
-            $organisation = is_array($body) ? ($body['organisation'] ?? null) : null;
-            $ip = is_array($body) ? ($body['ip'] ?? null) : null;
+            $countryIsoCode = Arr::get($body, 'country.iso_code');
+            $organisation = Arr::get($body, 'organisation');
+            $ip = Arr::get($body, 'ip');
 
             if (!is_string($countryIsoCode) || !is_string($organisation)) {
                 return false;

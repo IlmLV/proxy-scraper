@@ -7,7 +7,7 @@ namespace IlmLV\ProxyScraper\Validations;
 use IlmLV\ProxyScraper\Validations\Domains\AbstractDomainValidation;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
-class DomainsValidation implements \JsonSerializable
+class DomainsValidation implements \JsonSerializable, ValidationInterface
 {
     use KeyedResultMap;
 

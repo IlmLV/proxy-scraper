@@ -22,7 +22,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * @property-read HeadersValidation|null $delete
  * @property-read HeadersValidation|null $patch
  */
-class MethodsValidation implements JsonSerializable
+class MethodsValidation implements JsonSerializable, ValidationInterface
 {
     use KeyedResultMap;
 

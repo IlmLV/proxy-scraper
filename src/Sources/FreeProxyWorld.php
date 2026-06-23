@@ -4,14 +4,13 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
 /**
  * freeproxy.world lists mixed protocols in one table; the "Type" column (index 5)
  * holds a clean http/https/socks4/socks5 token, so we read the protocol per row.
  */
-final class FreeProxyWorld extends TableListScraper implements ScraperInterface
+final class FreeProxyWorld extends TableListScraper
 {
     protected string $url = 'https://www.freeproxy.world/';
 

@@ -13,7 +13,7 @@ class HeadersValidation extends AbstractRequestValidation
     /**
      * @var array<string, array<string, string>>
      */
-    private array $headerValues = [
+    private const HEADER_VALUES = [
         'common' => [
             'A-IM' => 'feed',
             'Accept' => 'application/json',
@@ -81,7 +81,7 @@ class HeadersValidation extends AbstractRequestValidation
     public function validate(): bool
     {
         try {
-            $requestHeaders = $this->headerValues['common'] + $this->headerValues[$this->method];
+            $requestHeaders = self::HEADER_VALUES['common'] + self::HEADER_VALUES[$this->method];
 
             $response = $this->request($this->method, $this->url, ['headers' => $requestHeaders]);
 

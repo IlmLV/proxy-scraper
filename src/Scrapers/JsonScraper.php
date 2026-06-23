@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Scrapers;
 
 use Generator;
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
 /**
  * Base for a source whose endpoint returns a single proxy as one JSON object
@@ -20,7 +20,7 @@ use IlmLV\ProxyScraper\ScraperInterface;
  * Because exactly one proxy is expected, a malformed payload throws rather than
  * being skipped (there is nothing else in the response to fall back to).
  */
-abstract class JsonScraper extends ProxyScraper implements ScraperInterface
+abstract class JsonScraper extends ProxyScraper
 {
     use JsonFieldMapping;
 
@@ -44,9 +44,9 @@ abstract class JsonScraper extends ProxyScraper implements ScraperInterface
     {
         $json = json_decode($response, true);
 
-        $host = is_array($json) ? ($json[$this->hostProperty] ?? null) : null;
-        $port = is_array($json) ? ($json[$this->portProperty] ?? null) : null;
-        $protocol = is_array($json) ? ($json[$this->protocolProperty] ?? null) : null;
+        $host = Arr::get($json, $this->hostProperty);
+        $port = Arr::get($json, $this->portProperty);
+        $protocol = Arr::get($json, $this->protocolProperty);
 
         if (!is_scalar($host) || !is_scalar($port) || !is_scalar($protocol)) {
             throw new ScraperException('Failed to extract, response (' . $response . ')');

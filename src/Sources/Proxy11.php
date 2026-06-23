@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
-final class Proxy11 extends TableListScraper implements ScraperInterface
+final class Proxy11 extends TableListScraper
 {
     protected string $url = 'http://proxy11.com/free-proxy';
 

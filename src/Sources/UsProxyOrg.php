@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
-final class UsProxyOrg extends TableListScraper implements ScraperInterface
+final class UsProxyOrg extends TableListScraper
 {
     protected string $url = 'https://www.us-proxy.org/';
 

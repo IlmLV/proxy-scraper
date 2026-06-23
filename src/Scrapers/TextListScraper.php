@@ -9,9 +9,8 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-abstract class TextListScraper extends ProxyScraper implements ScraperInterface
+abstract class TextListScraper extends ProxyScraper
 {
     /**
      * Protocol to prepend to each bare "ip:port" line. When null, the line is

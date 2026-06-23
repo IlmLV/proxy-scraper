@@ -3,7 +3,6 @@
 namespace IlmLV\ProxyScraper\Tests\Unit\Validations;
 
 use IlmLV\ProxyScraper\Entities\Host;
-use IlmLV\ProxyScraper\Exceptions\ValidatorException;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Validations\AnonymityLevelValidation;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +17,7 @@ class AnonymityLevelValidationTest extends TestCase
         )->run();
 
         $this->assertSame('elite', $validation->anonymityLevel);
-        $this->assertSame('elite', (string) $validation);
+        $this->assertTrue($validation->valid);
     }
 
     public function testAnonymousWhenProxyHeaderPresent(): void
@@ -29,6 +28,7 @@ class AnonymityLevelValidationTest extends TestCase
         )->run();
 
         $this->assertSame('anonymous', $validation->anonymityLevel);
+        $this->assertTrue($validation->valid);
     }
 
     public function testExposedWhenRealIpLeaks(): void
@@ -39,6 +39,8 @@ class AnonymityLevelValidationTest extends TestCase
         )->run();
 
         $this->assertSame('exposed', $validation->anonymityLevel);
+        // An exposed proxy leaks the real IP, so the check itself does not pass.
+        $this->assertFalse($validation->valid);
     }
 
     public function testNullAndErrorOnVerificationWall(): void
@@ -49,9 +51,7 @@ class AnonymityLevelValidationTest extends TestCase
         )->run();
 
         $this->assertNull($validation->anonymityLevel);
+        $this->assertFalse($validation->valid);
         $this->assertNotEmpty((string) $validation->error);
-
-        $this->expectException(ValidatorException::class);
-        (string) $validation;
     }
 }

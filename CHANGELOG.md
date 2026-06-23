@@ -56,8 +56,39 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 - The global `snakeToCamel()` / `kebabToSnake()` functions (and the `helpers.php`
   autoload entry) are removed. Use the static `Str::snakeToCamel()` /
   `Str::kebabToSnake()` instead.
+- `LoadProxies::init()` is renamed to `LoadProxies::make()` for consistency with the
+  validation factories. Replace `LoadProxies::init(...)` with `LoadProxies::make(...)`.
+- `AnonymityLevelValidation` now extends `AbstractRequestValidation`, gaining the
+  family's public `$valid` (bool), `$latency` (`?float`) and `$error`
+  (`?ResponseError`) plus a `validate(): bool`, and its result is now measured for
+  latency. Its throwing `__toString()` is **removed** — casting the object to a
+  string no longer works; read `->anonymityLevel` instead. `$valid` is `true` only
+  when the proxy hides the real IP (`elite`/`anonymous`); an `exposed` result or a
+  failed probe is `false`. `ProxyValidation`'s JSON output is unchanged — it still
+  exposes `anonymityLevel` as the same plain string.
+- `RandomUserAgent`'s magic `__toString()` is replaced by a static
+  `RandomUserAgent::random(): string`. `(string) new RandomUserAgent()` no longer
+  works; use `RandomUserAgent::random()`.
+
+### Changed (non-breaking)
+
+- `ProxyScraper` now declares `abstract get(): Generator` and implements
+  `ScraperInterface` directly. The bundled scraper base classes and custom sources
+  that extend one of them no longer need to repeat `implements ScraperInterface`
+  (existing `implements` declarations still compile). `ScraperInterface` remains the
+  public contract to type-hint against.
+- `HeadersValidation`'s probe header set is now a `private const` instead of a
+  per-instance property (no behavioural or output change).
 
 ### Added
+
+- `Arr::get()` — a small dot-notation accessor for safely reading values out of
+  decoded JSON of unknown shape (e.g. `Arr::get($body, 'country.iso_code')`),
+  replacing the repeated `is_array(...) ? (...['k'] ?? null) : null` pattern.
+- `Validations\ValidationInterface` (`run(): self`) is implemented by the per-request
+  validations (via `AbstractRequestValidation`) and the aggregators (`ProxyValidation`,
+  `MethodsValidation`, `DomainsValidation`, `IpVersionValidation`), unifying the
+  family's contract.
 
 - `ScrapedProxyList::unique()` and `LoadProxies::unique()` return every scraped proxy
   flattened across all sources with exact duplicates removed (sources overlap heavily).
@@ -68,6 +99,11 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 
 ### Fixed (behaviour)
 
+- A source that throws a non-`ProxyScraperException` (e.g. `\TypeError`,
+  `\RuntimeException` from a custom/buggy scraper) no longer aborts the whole batch.
+  Any foreign throwable is wrapped in a `ScraperException` (with the original kept as
+  `$previous`) and captured in `errors()`, honouring the documented "a failing source
+  never aborts the batch" guarantee.
 - A source whose URL already carries a query string (e.g. `pubproxy.com`'s
   `?limit=5&format=json`) no longer produces a malformed, double-`?` URL when
   `scraperConfig` options are supplied — the options are now appended with `&`.

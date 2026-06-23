@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper;
 
+use Generator;
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\Port;
 use IlmLV\ProxyScraper\Entities\Protocol;
@@ -26,7 +27,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * Per-format scrapers add their own config properties (e.g. $protocol, $rowPath,
  * column indices, JSON field names) — see each Scrapers\* class.
  */
-abstract class ProxyScraper
+abstract class ProxyScraper implements ScraperInterface
 {
     protected string $url;
 
@@ -49,6 +50,14 @@ abstract class ProxyScraper
 
         $this->loadOptions($options);
     }
+
+    /**
+     * Yield the proxies this source publishes. Concrete scrapers (the Scrapers\*
+     * format bases, or a source extending ProxyScraper directly) implement this.
+     *
+     * @return Generator<int, Proxy>
+     */
+    abstract public function get(): Generator;
 
     /**
      * @param array<string, mixed> $options

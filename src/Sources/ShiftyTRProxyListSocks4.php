@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class ShiftyTRProxyListSocks4 extends TextListScraper implements ScraperInterface
+final class ShiftyTRProxyListSocks4 extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/ShiftyTR/Proxy-List/master/socks4.txt';
 

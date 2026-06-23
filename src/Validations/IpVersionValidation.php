@@ -15,7 +15,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * an HTTP CONNECT or SOCKS5h proxy (which resolves the hostname itself) is
  * forced to open a connection of the matching address family.
  */
-class IpVersionValidation
+class IpVersionValidation implements ValidationInterface
 {
     public const IPV4_URL = ValidationEndpoints::IPV4;
     public const IPV6_URL = ValidationEndpoints::IPV6;

@@ -10,9 +10,8 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-final class BlogspotProxyCom extends ProxyScraper implements ScraperInterface
+final class BlogspotProxyCom extends ProxyScraper
 {
     protected string $url = 'https://blogspotproxy.blogspot.com/feeds/posts/default';
 
