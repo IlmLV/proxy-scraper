@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
-final class FreeProxyListNet extends TableListScraper implements ScraperInterface
+final class FreeProxyListNet extends TableListScraper
 {
     protected string $url = 'https://www.free-proxy-list.net/';
 
@@ -16,5 +15,5 @@ final class FreeProxyListNet extends TableListScraper implements ScraperInterfac
     protected int $colAddress = 0;
     protected int $colPort = 1;
 
-    const SCHEDULE = '*/10 * * * *';
+    public const SCHEDULE = '*/10 * * * *';
 }

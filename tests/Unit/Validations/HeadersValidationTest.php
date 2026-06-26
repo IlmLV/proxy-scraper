@@ -18,14 +18,14 @@ class HeadersValidationTest extends TestCase
         // proxy is wrongly marked as not forwarding HTTP.
         $body = gzencode(MockClientFactory::load('Validations/headers-echo-get.json'));
 
-        $validation = new HeadersValidation(
+        $validation = HeadersValidation::make(
             'GET',
             'http://whoami.serviss.it/?format=json',
             new MockHttpClient(new MockResponse($body, [
                 'http_code'        => 200,
                 'response_headers' => ['content-encoding' => 'gzip'],
             ]))
-        );
+        )->run();
 
         $this->assertTrue($validation->valid);
         $this->assertTrue($validation->headers['Accept']);
@@ -34,11 +34,11 @@ class HeadersValidationTest extends TestCase
 
     public function testValidWhenEchoedMethodMatchesAndHeadersPreserved(): void
     {
-        $validation = new HeadersValidation(
+        $validation = HeadersValidation::make(
             'GET',
             'http://whoami.serviss.it/?format=json',
             MockClientFactory::fromFixture('Validations/headers-echo-get.json')
-        );
+        )->run();
 
         $this->assertTrue($validation->valid);
         $this->assertIsFloat($validation->latency);
@@ -51,22 +51,36 @@ class HeadersValidationTest extends TestCase
 
     public function testHeadRequestValidWhenBodyEmptyAndStatusOk(): void
     {
-        $validation = new HeadersValidation(
+        $validation = HeadersValidation::make(
             'HEAD',
             'http://whoami.serviss.it/?format=json',
             MockClientFactory::fromString('', 200)
-        );
+        )->run();
 
         $this->assertTrue($validation->valid);
     }
 
+    public function testInvalidWhenResponseMissingMethodKey(): void
+    {
+        // A 200 response whose JSON omits the echoed "method" key must be reported
+        // invalid without raising an "undefined array key" warning (the suite runs
+        // with failOnWarning enabled).
+        $validation = HeadersValidation::make(
+            'GET',
+            'http://whoami.serviss.it/?format=json',
+            MockClientFactory::fromString('{"accept":"application/json"}', 200)
+        )->run();
+
+        $this->assertFalse($validation->valid);
+    }
+
     public function testInvalidWhenRequestFails(): void
     {
-        $validation = new HeadersValidation(
+        $validation = HeadersValidation::make(
             'GET',
             'http://whoami.serviss.it/?format=json',
             MockClientFactory::fromString('', 500)
-        );
+        )->run();
 
         $this->assertFalse($validation->valid);
     }

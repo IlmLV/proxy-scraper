@@ -4,85 +4,66 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use IlmLV\ProxyScraper\Benchmark;
 use IlmLV\ProxyScraper\Entities\ResponseError;
-use IlmLV\ProxyScraper\Helper;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Symfony\Contracts\HttpClient\ResponseInterface;
 
-abstract class AbstractRequestValidation
+abstract class AbstractRequestValidation implements ValidationInterface
 {
-    /**
-     * @var HttpClientInterface
-     */
     protected HttpClientInterface $client;
 
-    /**
-     * @var string
-     */
     protected string $method;
 
-    /**
-     * @var string
-     */
     protected string $url;
 
-    /**
-     * @var bool
-     */
-    public bool $valid;
+    public bool $valid = false;
 
-    /**
-     * @var float|null
-     */
-    public float|null $latency;
+    public ?float $latency = null;
 
-    /**
-     * @var ResponseError
-     */
-    public ResponseError $error;
+    public ?ResponseError $error = null;
 
-    /**
-     * @var bool
-     */
     protected bool $useBenchmark = true;
 
-    /**
-     * @param string $method
-     * @param string $url
-     * @param HttpClientInterface|null $client
-     */
     public function __construct(string $method, string $url, ?HttpClientInterface $client = null)
     {
         $this->client = $client ?? HttpClient::create();
         $this->method = $method;
         $this->url = $url;
-        $this->valid = $this->validate();
     }
 
     /**
-     * Run the validation for this request and report whether the proxy passed.
-     *
-     * @return bool
+     * Perform the request, populate the result properties ($valid, $latency,
+     * $error, …) and return $this. Construction performs no I/O — call run()
+     * explicitly (or let an aggregator do it) to execute the validation.
+     */
+    public function run(): static
+    {
+        $this->valid = $this->validate();
+
+        return $this;
+    }
+
+    /**
+     * The validation logic for one request: perform it and report whether the
+     * proxy passed. Invoked by {@see run()}; concrete validations implement this.
      */
     abstract public function validate(): bool;
 
     /**
-     * @param string $method
-     * @param string $url
      * @param array<string, mixed> $options
-     * @return ResponseInterface
      * @throws \Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
      */
     protected function request(string $method, string $url, array $options = []): ResponseInterface
     {
-        $request = function() use ($method, $url, $options) {
+        $request = function () use ($method, $url, $options) {
             $response = $this->client->request($method, $url, $options);
             $response->getStatusCode(); // triggers actual request for benchmark
             return $response;
         };
 
-        return $this->useBenchmark ? Helper::benchmark($this->latency, $request) : $request();
+        return $this->useBenchmark ? Benchmark::measure($this->latency, $request) : $request();
     }
 
     /**
@@ -114,5 +95,4 @@ abstract class AbstractRequestValidation
 
         return $decoded === false ? $body : $decoded;
     }
-
 }

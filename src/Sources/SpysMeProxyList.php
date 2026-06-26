@@ -9,7 +9,6 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
 /**
  * spys.me runs its own scanner and serves a whitespace-separated list:
@@ -17,13 +16,13 @@ use IlmLV\ProxyScraper\ScraperInterface;
  * We take the first token of each line as ip:port; banner lines fail the Proxy
  * parse and are skipped automatically. The list is HTTP(S) proxies.
  */
-final class SpysMeProxyList extends ProxyScraper implements ScraperInterface
+final class SpysMeProxyList extends ProxyScraper
 {
     protected string $url = 'https://spys.me/proxy.txt';
 
     protected string $protocol = 'http';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 
     /**
      * @return Generator<int, Proxy>
@@ -31,11 +30,7 @@ final class SpysMeProxyList extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $text = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $text = $this->fetch();
 
         foreach (explode("\n", $text) as $line) {
             $line = trim($line);
@@ -50,7 +45,7 @@ final class SpysMeProxyList extends ProxyScraper implements ScraperInterface
             $address = $parts[0];
 
             try {
-                $proxy = new Proxy($this->protocol . '://' . $address);
+                $proxy = Proxy::fromString($this->protocol . '://' . $address);
             } catch (InvalidArgumentException $e) {
                 continue;
             }

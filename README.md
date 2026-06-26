@@ -21,7 +21,7 @@ capabilities — anonymity level, latency, HTTP(S) method support and more. Supp
 
 ## Why this library
 
-- **Batteries included** — 39 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in CI; add your own in a few lines.
+- **Batteries included** — 39 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in a separate weekly CI job; add your own in a few lines.
 - **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
 - **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
 - **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
@@ -53,7 +53,7 @@ The snippets below assume Composer's autoloader is already loaded
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->all();
+$proxies = LoadProxies::make()->all();
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -62,13 +62,31 @@ foreach ($proxies->get() as $proxy) {
 dump($proxies->stats());
 ```
 
+### Get a deduplicated set
+
+Sources overlap heavily, so the same proxy is often returned by several of them.
+`get()` returns every occurrence (and is what `stats()` counts); `unique()` returns
+the same proxies flattened across all sources with exact duplicates removed. Two
+proxies are equal when their string form (`protocol://[user:pass@]host:port`) matches,
+so the same endpoint reached over a different protocol is kept.
+
+```php
+use IlmLV\ProxyScraper\LoadProxies;
+
+$proxies = LoadProxies::make()->all();
+
+foreach ($proxies->unique() as $proxy) {
+    echo $proxy . PHP_EOL;
+}
+```
+
 ### Scrape a single source
 
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 
-$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+$proxies = LoadProxies::make()->only(FreeProxyListNet::class);
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -84,7 +102,7 @@ provider on every tick.
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->scheduled();
+$proxies = LoadProxies::make()->scheduled();
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
@@ -96,7 +114,7 @@ foreach ($proxies->get() as $proxy) {
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
 
-$proxies = LoadProxies::init()->all();
+$proxies = LoadProxies::make()->all();
 
 foreach ($proxies->stats() as $source => $results) {
     echo $source . ' => ' . json_encode($results) . PHP_EOL;
@@ -125,7 +143,7 @@ $scraperConfig = [
 
 $httpClient = HttpClient::create(['timeout' => 30]);
 
-$proxies = LoadProxies::init($scraperConfig, $httpClient)
+$proxies = LoadProxies::make($scraperConfig, $httpClient)
     ->only(PubProxyCom::class);
 
 dump($proxies->stats());
@@ -149,7 +167,7 @@ $scraperConfig = [
     ],
 ];
 
-$proxies = LoadProxies::init($scraperConfig)->only(PubProxyCom::class);
+$proxies = LoadProxies::make($scraperConfig)->only(PubProxyCom::class);
 
 foreach ($proxies->errors() as $scraper => $exception) {
     echo $scraper . ' => ' . $exception->getMessage() . PHP_EOL;
@@ -201,25 +219,32 @@ Currently supported source data types:
 
 ### Define a custom source
 
-Extend one of the scraper base types, point `$url` at the resource, and hand the
-class to `only()`/`add()` — there is no need to register it in `LoadProxies`:
+Extend one of the scraper base types (each already implements `ScraperInterface`
+via `ProxyScraper`), point `$url` at the resource, and hand the class to
+`only()`/`add()` — there is no need to register it in `LoadProxies`:
 
 ```php
 use IlmLV\ProxyScraper\LoadProxies;
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\JsonScraper;
 
-class CustomGimmeProxy extends JsonScraper implements ScraperInterface
+class CustomGimmeProxy extends JsonScraper
 {
     protected string $url = 'https://gimmeproxy.com/api/getProxy';
 }
 
-$proxies = LoadProxies::init()->only(CustomGimmeProxy::class);
+$proxies = LoadProxies::make()->only(CustomGimmeProxy::class);
 
 foreach ($proxies->get() as $proxy) {
     echo $proxy . PHP_EOL;
 }
 ```
+
+Bundled sources live in `src/Sources/`, one class per source, named
+`<Provider>[Variant]<Protocol>` (e.g. `FreeProxyListNet`, `ShiftyTRProxyListSocks5`).
+A source only sets `$url`, an optional `$protocol`, the format-specific knobs of its
+scraper base (see each `Scrapers/*` class docblock), and a `SCHEDULE`. Unlike a custom
+source, a bundled one is registered in `LoadProxies::$scrapers` so it runs under
+`all()`/`scheduled()`.
 
 ## Proxy validation
 This library can also be used for proxy capability validation:
@@ -237,12 +262,15 @@ This library can also be used for proxy capability validation:
 
 ### Validate a proxy
 
-`ProxyValidation` accepts either a proxy string or a `Proxy` entity:
+`ProxyValidation` accepts either a proxy string or a `Proxy` entity. Build it with
+`make()`, apply any optional configuration through the `set*()` methods
+(`setDomainValidators()`, …), then call `run()` to execute the checks; `run()`
+populates and returns the validation object. Construction itself performs no I/O.
 
 ```php
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 
-$validation = new ProxyValidation('http://1.1.1.1:80');
+$validation = ProxyValidation::make('http://1.1.1.1:80')->run();
 
 dump($validation);
 ```
@@ -283,16 +311,18 @@ class ExampleCom extends AbstractDomainValidation
 }
 ```
 
-Pass the validator classes you want to run to `ProxyValidation`:
+Register the validator classes you want to run with `setDomainValidators()`:
 
 ```php
 use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 
-$validation = new ProxyValidation('http://1.1.1.1:80', null, [
-    ExampleCom::class,
-    MyShop::class,   // your own validator extending AbstractRequestValidation
-]);
+$validation = ProxyValidation::make('http://1.1.1.1:80')
+    ->setDomainValidators([
+        ExampleCom::class,
+        MyShop::class,   // your own validator extending AbstractDomainValidation
+    ])
+    ->run();
 
 $validation->domains->{'example.com'}->valid;   // bool
 ```
@@ -306,17 +336,19 @@ use IlmLV\ProxyScraper\LoadProxies;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
 
-$proxies = LoadProxies::init()->only(FreeProxyListNet::class);
+$proxies = LoadProxies::make()->only(FreeProxyListNet::class);
 
 foreach ($proxies->get() as $proxy) {
-    $validation = new ProxyValidation($proxy);
+    $validation = ProxyValidation::make($proxy)->run();
 
     dump(json_decode(json_encode($validation)));
 }
 ```
 
 The validation result looks like (the `domains` block lists only the validators
-you opted into — it is empty when none are configured):
+you opted into — it is empty when none are configured). Every individual check
+also carries an `error` field — `null` when it succeeded, a `{message, file,
+line}` object when it failed (`line` is an integer):
 
 ```json
 {
@@ -379,9 +411,10 @@ you opted into — it is empty when none are configured):
       "valid": false,
       "latency": null,
       "error": {
+        "type": "Symfony\\Component\\HttpClient\\Exception\\TransportException",
         "message": "Connection to proxy closed for \"http://whoami.serviss.it/?format=json\".",
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
-        "line": "56"
+        "line": 56
       },
       "headers": {}
     },
@@ -422,9 +455,10 @@ you opted into — it is empty when none are configured):
       "valid": false,
       "latency": null,
       "error": {
+        "type": "Symfony\\Component\\HttpClient\\Exception\\TransportException",
         "message": "Connection to proxy closed for \"https://whoami.serviss.it/?format=json\".",
         "file": "/proxy-scraper/vendor/symfony/http-client/Chunk/ErrorChunk.php",
-        "line": "56"
+        "line": 56
       },
       "headers": []
     },

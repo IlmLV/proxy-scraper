@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Sources;
 
 use Generator;
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
+final class CheckerProxyNet extends ProxyScraper
 {
     protected string $url = 'https://api.checkerproxy.net/v1/landing/archive';
-    const SCHEDULE = '0 0 * * *';
+    public const SCHEDULE = '0 0 * * *';
 
     /**
      * The archive API no longer exposes a proxy type/protocol, just an
@@ -23,7 +23,6 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
     protected string $protocol = 'http';
 
     /**
-     * @return Generator
      * @throws InvalidArgumentException
      * @throws ScraperException
      */
@@ -31,15 +30,10 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
     {
         $date = $this->latestArchiveDate();
 
-        try {
-            $response = $this->httpClient->request('GET', $this->url . '/' . $date)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetchUrl($this->url . '/' . $date);
 
         $json = json_decode($response, true);
-        $data = is_array($json) ? ($json['data'] ?? null) : null;
-        $proxyList = is_array($data) ? ($data['proxyList'] ?? null) : null;
+        $proxyList = Arr::get($json, 'data.proxyList');
 
         if (!is_array($proxyList)) {
             throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');
@@ -50,7 +44,7 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
                 continue;
             }
             try {
-                yield new Proxy($this->protocol . '://' . $address);
+                yield Proxy::fromString($this->protocol . '://' . $address);
             } catch (InvalidArgumentException $e) {
                 continue;
             }
@@ -61,22 +55,14 @@ final class CheckerProxyNet extends ProxyScraper implements ScraperInterface
      * The archive is published with a few days of delay, so we resolve the most
      * recent available date from the archive index before fetching its proxies.
      *
-     * @return string
      * @throws ScraperException
      */
     private function latestArchiveDate(): string
     {
-        try {
-            $response = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetchUrl($this->url);
 
         $json = json_decode($response, true);
-        $data = is_array($json) ? ($json['data'] ?? null) : null;
-        $items = is_array($data) ? ($data['items'] ?? null) : null;
-        $first = is_array($items) ? ($items[0] ?? null) : null;
-        $date = is_array($first) ? ($first['date'] ?? null) : null;
+        $date = Arr::get($json, 'data.items.0.date');
 
         if (!is_string($date)) {
             throw new ScraperException('Failed to resolve latest archive date, response (' . $response . ')');

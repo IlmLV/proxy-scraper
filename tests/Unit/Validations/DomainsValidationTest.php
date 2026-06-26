@@ -5,15 +5,15 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Validations;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Validations\Domains\ExampleCom;
 use IlmLV\ProxyScraper\Validations\DomainsValidation;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
-use PHPUnit\Framework\TestCase;
 
 class DomainsValidationTest extends TestCase
 {
     public function testNoValidatorsRunByDefault(): void
     {
-        $validation = new DomainsValidation(self::expectedPagesClient());
+        $validation = DomainsValidation::make(self::expectedPagesClient())->run();
 
         $this->assertFalse(isset($validation->{'example.com'}));
         $this->assertSame([], $validation->jsonSerialize());
@@ -21,7 +21,7 @@ class DomainsValidationTest extends TestCase
 
     public function testConfiguredValidatorRunsAndPasses(): void
     {
-        $validation = new DomainsValidation(self::expectedPagesClient(), [ExampleCom::class]);
+        $validation = DomainsValidation::make(self::expectedPagesClient())->setValidators([ExampleCom::class])->run();
 
         $this->assertTrue($validation->{'example.com'}->valid);
     }
@@ -29,17 +29,17 @@ class DomainsValidationTest extends TestCase
     public function testDomainValidatorFailsOnUnexpectedPage(): void
     {
         $client = MockClientFactory::router(
-             fn (string $method, string $url, array $options) => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
+            fn (string $method, string $url, array $options) => new MockResponse('<html><head><title>Blocked</title></head><body></body></html>')
         );
 
-        $validation = new DomainsValidation($client, [ExampleCom::class]);
+        $validation = DomainsValidation::make($client)->setValidators([ExampleCom::class])->run();
 
         $this->assertFalse($validation->{'example.com'}->valid);
     }
 
     public function testMagicAccessorsExposeValidatorsByDomain(): void
     {
-        $validation = new DomainsValidation(self::expectedPagesClient(), [ExampleCom::class]);
+        $validation = DomainsValidation::make(self::expectedPagesClient())->setValidators([ExampleCom::class])->run();
 
         // __isset / __get
         $this->assertTrue(isset($validation->{'example.com'}));
@@ -58,7 +58,7 @@ class DomainsValidationTest extends TestCase
 
     public function testSerialisesKeyedByDomainName(): void
     {
-        $validation = new DomainsValidation(self::expectedPagesClient(), [ExampleCom::class]);
+        $validation = DomainsValidation::make(self::expectedPagesClient())->setValidators([ExampleCom::class])->run();
 
         $decoded = json_decode(json_encode($validation), true);
 

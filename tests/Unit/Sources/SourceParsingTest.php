@@ -26,7 +26,7 @@ class SourceParsingTest extends TestCase
         $this->assertCount(3, $proxies);
         $this->assertSame($protocol . '://1.2.3.4:8080', (string) $proxies[0]);
         foreach ($proxies as $proxy) {
-            $this->assertSame($protocol, (string) $proxy->protocol);
+            $this->assertSame($protocol, $proxy->protocol->value);
         }
     }
 
@@ -40,8 +40,8 @@ class SourceParsingTest extends TestCase
             'hookzof socks5'    => [Sources\HookzofSocks5List::class, 'socks5'],
             'monosans http'     => [Sources\MonosansProxyListHttp::class, 'http'],
             'proxyscrape http'  => [Sources\ProxyScrapeComHttp::class, 'http'],
-            'proxyscrape socks4'=> [Sources\ProxyScrapeComSocks4::class, 'socks4'],
-            'proxyscrape socks5'=> [Sources\ProxyScrapeComSocks5::class, 'socks5'],
+            'proxyscrape socks4' => [Sources\ProxyScrapeComSocks4::class, 'socks4'],
+            'proxyscrape socks5' => [Sources\ProxyScrapeComSocks5::class, 'socks5'],
             'roosterkid https'  => [Sources\RoosterkidOpenProxyListHttps::class, 'https'],
             'roosterkid socks4' => [Sources\RoosterkidOpenProxyListSocks4::class, 'socks4'],
             'roosterkid socks5' => [Sources\RoosterkidOpenProxyListSocks5::class, 'socks5'],

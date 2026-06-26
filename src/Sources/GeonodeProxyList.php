@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Sources;
 
 use Generator;
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
 /**
  * Geonode exposes its own checked proxy database as JSON. Each entry lists one
@@ -17,11 +17,11 @@ use IlmLV\ProxyScraper\ScraperInterface;
  * listed protocol here. A single page of 500 keeps us well under the public
  * rate limit (~100 req/h) without pagination.
  */
-final class GeonodeProxyList extends ProxyScraper implements ScraperInterface
+final class GeonodeProxyList extends ProxyScraper
 {
     protected string $url = 'https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 
     /**
      * @return Generator<int, \IlmLV\ProxyScraper\Entities\Proxy>
@@ -30,14 +30,10 @@ final class GeonodeProxyList extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $response = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $response = $this->fetch();
 
         $json = json_decode($response, true);
-        $list = is_array($json) ? ($json['data'] ?? null) : null;
+        $list = Arr::get($json, 'data');
 
         if (!is_array($list)) {
             throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');

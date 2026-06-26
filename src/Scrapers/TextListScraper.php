@@ -9,9 +9,8 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-abstract class TextListScraper extends ProxyScraper implements ScraperInterface
+abstract class TextListScraper extends ProxyScraper
 {
     /**
      * Protocol to prepend to each bare "ip:port" line. When null, the line is
@@ -26,11 +25,7 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
      */
     public function get(): Generator
     {
-        try {
-            $text = $this->httpClient->request('GET', $this->url)->getContent();
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
-        }
+        $text = $this->fetch();
 
         foreach (explode("\n", $text) as $line) {
             $line = trim($line);
@@ -39,7 +34,7 @@ abstract class TextListScraper extends ProxyScraper implements ScraperInterface
             }
 
             try {
-                $proxy = new Proxy($this->protocol === null ? $line : $this->protocol . '://' . $line);
+                $proxy = Proxy::fromString($this->protocol === null ? $line : $this->protocol . '://' . $line);
             } catch (InvalidArgumentException $e) {
                 continue;
             }

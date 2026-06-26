@@ -9,8 +9,8 @@ use Symfony\Component\DomCrawler\Crawler as Dom;
 
 class ExampleCom extends AbstractDomainValidation
 {
-    const NAME = 'example.com';
-    const URL = 'http://example.com/';
+    public const NAME = 'example.com';
+    public const URL = 'http://example.com/';
 
     public function validate(): bool
     {
@@ -22,8 +22,7 @@ class ExampleCom extends AbstractDomainValidation
 
             return $response->getStatusCode() === 200
                 && $title->text() === 'Example Domain';
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return false;
         }

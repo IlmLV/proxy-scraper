@@ -8,9 +8,27 @@ use IlmLV\ProxyScraper\Sources\ProxiflyProxyList;
 use IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks5;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class TextListScraperTest extends TestCase
 {
+    public function testAppendsConfiguredOptionsAsQueryParameters(): void
+    {
+        // A text-list source must honour the same scraperConfig query-param
+        // mechanism as the JSON scrapers (it previously requested $this->url raw).
+        $requestedUrl = null;
+        $client = MockClientFactory::router(function (string $method, string $url) use (&$requestedUrl): MockResponse {
+            $requestedUrl = $url;
+            return new MockResponse("1.2.3.4:8080\n");
+        });
+
+        $scraper = new ClarketmProxyList($client, ['country' => 'US']);
+        iterator_to_array($scraper->get(), false);
+
+        $this->assertNotNull($requestedUrl);
+        $this->assertStringContainsString('country=US', $requestedUrl);
+    }
+
     public function testParsesIpPortLinesAndSkipsInvalid(): void
     {
         $scraper = new ClarketmProxyList(MockClientFactory::fromFixture('Sources/text-list.txt'));
@@ -29,7 +47,7 @@ class TextListScraperTest extends TestCase
 
         $proxies = iterator_to_array($scraper->get(), false);
 
-        $this->assertSame('socks5', (string) $proxies[0]->protocol);
+        $this->assertSame('socks5', $proxies[0]->protocol->value);
     }
 
     public function testNullProtocolReadsSchemeFromEachLine(): void

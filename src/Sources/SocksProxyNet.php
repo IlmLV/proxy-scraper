@@ -4,23 +4,19 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Sources;
 
-use Generator;
-use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
-use IlmLV\ProxyScraper\Exceptions\ScraperException;
-use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
-use Symfony\Component\DomCrawler\Crawler as Dom;
 
-
-final class SocksProxyNet extends TableListScraper implements ScraperInterface
+final class SocksProxyNet extends TableListScraper
 {
     protected string $url = 'https://www.socks-proxy.net/';
 
+    // socks-proxy.net mixes socks4/socks5 in one table, so the scheme is read
+    // per row from the "Version" column (index 4) rather than fixed here.
+    protected ?string $protocol = null;
     protected string $rowPath = '#list tbody tr';
     protected int $colAddress = 0;
     protected int $colPort = 1;
     protected int $colProtocol = 4;
 
-    const SCHEDULE = '*/10 * * * *';
+    public const SCHEDULE = '*/10 * * * *';
 }

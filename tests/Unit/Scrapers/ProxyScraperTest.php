@@ -2,10 +2,12 @@
 
 namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
+use Generator;
 use IlmLV\ProxyScraper\Entities\Proxy;
+use IlmLV\ProxyScraper\ProxyScraper;
 use IlmLV\ProxyScraper\Tests\Support\StubScraper;
-use Symfony\Component\HttpClient\MockHttpClient;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
 
 class ProxyScraperTest extends TestCase
 {
@@ -35,6 +37,31 @@ class ProxyScraperTest extends TestCase
         $this->assertStringContainsString('page=2', $url);
         // booleans are normalised to the strings 'true' / 'false'
         $this->assertStringContainsString('secure=true', $url);
+    }
+
+    public function testGetUrlAppendsOptionsWithAmpersandWhenUrlAlreadyHasQuery(): void
+    {
+        // A source whose URL already carries a query string (e.g. pubproxy.com's
+        // "?limit=5&format=json") must not gain a second "?" when options are
+        // appended, or the resulting URL is malformed.
+        $scraper = new class (new MockHttpClient(), ['country' => 'US']) extends ProxyScraper {
+            protected string $url = 'http://example.test/api?limit=5&format=json';
+
+            public function buildUrl(): string
+            {
+                return $this->getUrl();
+            }
+
+            public function get(): Generator
+            {
+                yield from [];
+            }
+        };
+
+        $url = $scraper->buildUrl();
+
+        $this->assertSame('http://example.test/api?limit=5&format=json&country=US', $url);
+        $this->assertSame(1, substr_count($url, '?'));
     }
 
     public function testGetUrlDoesNotTreatEncodedQueryValuesAsSprintfPlaceholders(): void

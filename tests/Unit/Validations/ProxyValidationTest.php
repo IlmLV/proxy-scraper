@@ -10,14 +10,14 @@ use IlmLV\ProxyScraper\Validations\IpValidation;
 use IlmLV\ProxyScraper\Validations\IpVersionValidation;
 use IlmLV\ProxyScraper\Validations\MethodsValidation;
 use IlmLV\ProxyScraper\Validations\ProxyValidation;
-use Symfony\Component\HttpClient\Response\MockResponse;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class ProxyValidationTest extends TestCase
 {
     public function testFullHappyPathProducesValidResult(): void
     {
-        $validation = new ProxyValidation('http://1.2.3.4:8080', self::happyPathClient(), [ExampleCom::class]);
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', self::happyPathClient())->setDomainValidators([ExampleCom::class])->run();
 
         $this->assertTrue($validation->valid);
         $this->assertSame('elite', $validation->anonymityLevel);
@@ -41,11 +41,55 @@ class ProxyValidationTest extends TestCase
         $this->assertInstanceOf(\DateTimeInterface::class, $validation->validatedAt);
     }
 
+    public function testAnonymityFailureDoesNotAbortSiblingValidations(): void
+    {
+        // whoami answers the methods probes (which carry the A-IM header) and the
+        // real-IP baseline (proxy:false) normally, but serves the anonymity probe
+        // a verification wall so only the anonymity check fails.
+        $client = MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
+            if (str_contains($url, 'whoami')) {
+                if (($options['proxy'] ?? null) === false) {
+                    return new MockResponse(MockClientFactory::load('Validations/realip.json'));
+                }
+                if (isset($options['normalized_headers']['a-im'])) {
+                    if ($method === 'HEAD') {
+                        return new MockResponse('', ['http_code' => 200]);
+                    }
+                    return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
+                }
+
+                return new MockResponse(MockClientFactory::load('Validations/anonymity-verify.html'));
+            }
+            if (str_contains($url, 'ipv4.serviss.it') || str_contains($url, 'ipv6.serviss.it')) {
+                return new MockResponse(json_encode(['ip' => '1.2.3.4']), ['http_code' => 200]);
+            }
+            if (str_contains($url, 'ip.serviss.it')) {
+                return new MockResponse(MockClientFactory::load('Validations/ip-match.json'));
+            }
+
+            return new MockResponse('{}', ['http_code' => 200]);
+        });
+
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', $client)->run();
+
+        // Anonymity could not be determined, but that no longer aborts the run.
+        $this->assertNull($validation->anonymityLevel);
+        $this->assertTrue($validation->valid);
+
+        // The remaining validations still ran and produced results.
+        $this->assertInstanceOf(IpValidation::class, $validation->ip);
+        $this->assertTrue($validation->ip->valid);
+        $this->assertInstanceOf(MethodsValidation::class, $validation->http);
+        $this->assertTrue($validation->http->get->valid);
+        $this->assertInstanceOf(IpVersionValidation::class, $validation->ipVersion);
+        $this->assertTrue($validation->ipVersion->ipv4->valid);
+    }
+
     public function testFailureWhenEndpointsUnreachable(): void
     {
         $client = MockClientFactory::router(fn (string $method, string $url, array $options) => new MockResponse('', ['http_code' => 500]));
 
-        $validation = new ProxyValidation('http://1.2.3.4:8080', $client);
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', $client)->run();
 
         $this->assertFalse($validation->valid);
         $this->assertInstanceOf(ResponseError::class, $validation->error);

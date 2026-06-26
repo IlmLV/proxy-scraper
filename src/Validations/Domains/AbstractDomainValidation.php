@@ -16,6 +16,8 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * {@see self::URL} to request (and optionally a non-GET {@see self::METHOD}) —
  * and implement {@see self::validate()}. The request/latency plumbing and
  * construction are inherited from {@see AbstractRequestValidation}.
+ *
+ * @phpstan-consistent-constructor
  */
 abstract class AbstractDomainValidation extends AbstractRequestValidation
 {
@@ -44,5 +46,10 @@ abstract class AbstractDomainValidation extends AbstractRequestValidation
     public function __construct(?HttpClientInterface $client = null)
     {
         parent::__construct(static::METHOD, static::URL, $client);
+    }
+
+    public static function make(?HttpClientInterface $client = null): static
+    {
+        return new static($client);
     }
 }

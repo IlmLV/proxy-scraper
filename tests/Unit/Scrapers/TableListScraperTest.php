@@ -29,8 +29,8 @@ class TableListScraperTest extends TestCase
         $proxies = iterator_to_array($scraper->get(), false);
 
         $this->assertCount(2, $proxies);
-        $this->assertSame('socks4', (string) $proxies[0]->protocol);
-        $this->assertSame('socks5', (string) $proxies[1]->protocol);
+        $this->assertSame('socks4', $proxies[0]->protocol->value);
+        $this->assertSame('socks5', $proxies[1]->protocol->value);
     }
 
     public function testSkipsRowsWithMissingCells(): void

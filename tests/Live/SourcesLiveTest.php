@@ -23,7 +23,7 @@ class SourcesLiveTest extends TestCase
     {
         $client = HttpClient::create(['timeout' => 30, 'max_duration' => 60]);
 
-        $proxies = LoadProxies::init([], $client)->only($class);
+        $proxies = LoadProxies::make([], $client)->only($class);
 
         $errors = $proxies->errors();
         if (isset($errors[$class])) {

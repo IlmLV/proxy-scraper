@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Entities\ResponseError;
+use IlmLV\ProxyScraper\Str;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class HeadersValidation extends AbstractRequestValidation
 {
     /**
      * @var array<string, array<string, string>>
      */
-    private array $headerValues = [
+    private const HEADER_VALUES = [
         'common' => [
             'A-IM' => 'feed',
             'Accept' => 'application/json',
@@ -71,15 +73,15 @@ class HeadersValidation extends AbstractRequestValidation
      */
     public array $headers = [];
 
-    /**
-     * @var ResponseError
-     */
-    public ResponseError $error;
+    public static function make(string $method, string $url, ?HttpClientInterface $client = null): self
+    {
+        return new self($method, $url, $client);
+    }
 
     public function validate(): bool
     {
         try {
-            $requestHeaders = $this->headerValues['common'] + $this->headerValues[$this->method];
+            $requestHeaders = self::HEADER_VALUES['common'] + self::HEADER_VALUES[$this->method];
 
             $response = $this->request($this->method, $this->url, ['headers' => $requestHeaders]);
 
@@ -96,15 +98,14 @@ class HeadersValidation extends AbstractRequestValidation
                     return false;
                 }
 
-                foreach($requestHeaders as $key => $value) {
-                    $responseKey = kebabToSnake(strtolower($key));
-                    $this->headers[$key] = isset($responseAttr[$responseKey]) ? ($responseAttr[$responseKey] === $value ? true : false) : false;
+                foreach ($requestHeaders as $key => $value) {
+                    $responseKey = Str::kebabToSnake(strtolower($key));
+                    $this->headers[$key] = isset($responseAttr[$responseKey]) && $responseAttr[$responseKey] === $value;
                 }
 
-                return $response->getStatusCode() === 200 && $responseAttr['method'] === $this->method;
+                return $response->getStatusCode() === 200 && ($responseAttr['method'] ?? null) === $this->method;
             }
-        }
-        catch (\Throwable $e) {
+        } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return false;
         }

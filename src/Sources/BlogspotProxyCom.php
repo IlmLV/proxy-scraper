@@ -10,43 +10,40 @@ use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Exceptions\InvalidArgumentException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\ProxyScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-final class BlogspotProxyCom extends ProxyScraper implements ScraperInterface
+final class BlogspotProxyCom extends ProxyScraper
 {
     protected string $url = 'https://blogspotproxy.blogspot.com/feeds/posts/default';
 
     protected ?string $protocol = 'http';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 
     /**
-     * @return Generator
      * @throws ScraperException
      */
     public function get(): Generator
     {
-        try {
-            $html = $this->httpClient->request('GET', $this->url)->getContent();
+        $html = $this->fetch();
 
-            if (strpos($html, '<?xml') === false) {
-                throw new ScraperException('Invalid XML');
-            }
+        if (strpos($html, '<?xml') === false) {
+            throw new ScraperException('Invalid XML');
+        }
 
-            $dom = simplexml_load_string($html);
-
-        } catch (\Throwable $e) {
-            throw new ScraperException($e->getMessage(), $e->getCode(), $e);
+        $dom = @simplexml_load_string($html);
+        if ($dom === false) {
+            throw new ScraperException('Failed to parse XML feed');
         }
 
         foreach ($dom->entry ?? [] as $node) {
             $matches = [];
-            preg_match_all('/((('. implode('|', Protocol::ALLOWED_PROTOCOLS) .'):\/\/)?\d+\.\d+\.\d+\.\d+([:\t])\d{1,5})/m', (string)$node->content, $matches);
+            $schemes = implode('|', array_map(static fn (Protocol $p): string => $p->value, Protocol::cases()));
+            preg_match_all('/(('. $schemes .'):\/\/)?\d+\.\d+\.\d+\.\d+([:\t])\d{1,5}/m', (string)$node->content, $matches);
 
             foreach ($matches[0] as $proxyString) {
                 try {
                     $proxyString = str_replace("\t", ':', $proxyString);
-                    yield new Proxy(($this->protocol ? $this->protocol . '://' : '') . $proxyString);
+                    yield Proxy::fromString(($this->protocol ? $this->protocol . '://' : '') . $proxyString);
                 } catch (InvalidArgumentException $e) {
                     continue;
                 }

@@ -5,13 +5,12 @@ declare(strict_types=1);
 namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
-use IlmLV\ProxyScraper\ScraperInterface;
 
-final class TheSpeedXProxyListSocks5 extends TextListScraper implements ScraperInterface
+final class TheSpeedXProxyListSocks5 extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt';
 
     protected ?string $protocol = 'socks5';
 
-    const SCHEDULE = '0 * * * *';
+    public const SCHEDULE = '0 * * * *';
 }

@@ -9,7 +9,7 @@ class RandomUserAgentTest extends TestCase
 {
     public function testReturnsNonEmptyUserAgentString(): void
     {
-        $userAgent = (string) new RandomUserAgent();
+        $userAgent = RandomUserAgent::random();
 
         $this->assertNotEmpty($userAgent);
         $this->assertStringContainsString('Mozilla', $userAgent);

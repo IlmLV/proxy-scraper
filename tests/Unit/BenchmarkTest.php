@@ -2,16 +2,16 @@
 
 namespace IlmLV\ProxyScraper\Tests\Unit;
 
-use IlmLV\ProxyScraper\Helper;
+use IlmLV\ProxyScraper\Benchmark;
 use PHPUnit\Framework\TestCase;
 
-class HelperTest extends TestCase
+class BenchmarkTest extends TestCase
 {
-    public function testBenchmarkReturnsCallableResultAndMeasuresLatency(): void
+    public function testMeasureReturnsCallableResultAndRecordsLatency(): void
     {
         $latency = null;
 
-        $result = Helper::benchmark($latency, fn () => 'payload');
+        $result = Benchmark::measure($latency, fn () => 'payload');
 
         $this->assertSame('payload', $result);
         $this->assertIsFloat($latency);

@@ -8,23 +8,20 @@ use Throwable;
 
 final class ResponseError
 {
-    public string $message;
-    public string $file;
-    public string $line;
+    /** Fully-qualified class of the captured throwable. */
+    public readonly string $type;
+    public readonly string $message;
+    public readonly string $file;
+    public readonly int $line;
 
-    /**
-     * @param Throwable $e
-     */
     public function __construct(Throwable $e)
     {
+        $this->type = $e::class;
         $this->message = $e->getMessage();
         $this->file = $e->getFile();
-        $this->line = (string) $e->getLine();
+        $this->line = $e->getLine();
     }
 
-    /**
-     * @return string
-     */
     public function __toString(): string
     {
         return $this->message;

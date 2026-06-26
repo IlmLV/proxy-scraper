@@ -11,10 +11,10 @@ class IpValidationTest extends TestCase
 {
     public function testValidWhenReportedIpMatchesProxyHost(): void
     {
-        $validation = new IpValidation(
+        $validation = IpValidation::make(
             new Host('1.2.3.4'),
             MockClientFactory::fromFixture('Validations/ip-match.json')
-        );
+        )->run();
 
         $this->assertTrue($validation->valid);
         $this->assertSame('US', $validation->countryIsoCode);
@@ -23,11 +23,27 @@ class IpValidationTest extends TestCase
 
     public function testInvalidWhenReportedIpDiffersFromProxyHost(): void
     {
-        $validation = new IpValidation(
+        $validation = IpValidation::make(
             new Host('1.2.3.4'),
             MockClientFactory::fromFixture('Validations/ip-mismatch.json')
-        );
+        )->run();
 
         $this->assertFalse($validation->valid);
+    }
+
+    public function testResultPropertiesAreNullWhenRequestFails(): void
+    {
+        // Reading the result/latency properties on a failed validation must not
+        // throw "must not be accessed before initialization"; they read as null.
+        $validation = IpValidation::make(
+            new Host('1.2.3.4'),
+            MockClientFactory::fromString('', 500)
+        )->run();
+
+        $this->assertFalse($validation->valid);
+        $this->assertNull($validation->countryIsoCode);
+        $this->assertNull($validation->organisation);
+        $this->assertNull($validation->latency);
+        $this->assertNotNull($validation->error);
     }
 }

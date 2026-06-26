@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Entities;
 
-class RandomUserAgent
+final class RandomUserAgent
 {
     /** @var string[] Current desktop/mobile browser user agents (refreshed 2026). */
-    private array $userAgents = [
+    private const USER_AGENTS = [
         // Chrome — Windows
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
@@ -40,8 +40,8 @@ class RandomUserAgent
         'Mozilla/5.0 (iPad; CPU OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1',
     ];
 
-    public function __toString(): string
+    public static function random(): string
     {
-        return $this->userAgents[array_rand($this->userAgents)];
+        return self::USER_AGENTS[array_rand(self::USER_AGENTS)];
     }
 }

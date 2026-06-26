@@ -4,43 +4,23 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Host;
 use IlmLV\ProxyScraper\Entities\ResponseError;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class IpValidation extends AbstractRequestValidation
 {
-    const URL = 'http://ip.serviss.it/?format=json';
+    public const URL = ValidationEndpoints::IP;
 
-    /**
-     * @var Host
-     */
     private Host $proxyHost;
 
-    /**
-     * @var bool
-     */
     protected bool $useBenchmark = false;
 
-    /**
-     * @var string
-     */
-    public string $countryIsoCode;
+    public ?string $countryIsoCode = null;
 
-    /**
-     * @var string
-     */
-    public string $organisation;
+    public ?string $organisation = null;
 
-    /**
-     * @var ResponseError
-     */
-    public ResponseError $error;
-
-    /**
-     * @param Host $proxyHost
-     * @param HttpClientInterface|null $client
-     */
     public function __construct(Host $proxyHost, ?HttpClientInterface $client = null)
     {
         $this->proxyHost = $proxyHost;
@@ -48,19 +28,20 @@ class IpValidation extends AbstractRequestValidation
         parent::__construct('GET', self::URL, $client);
     }
 
-    /**
-     * @return bool
-     */
+    public static function make(Host $proxyHost, ?HttpClientInterface $client = null): self
+    {
+        return new self($proxyHost, $client);
+    }
+
     public function validate(): bool
     {
         try {
             $response = $this->request('GET', self::URL);
             $body = json_decode($response->getContent(), true);
 
-            $country = is_array($body) ? ($body['country'] ?? null) : null;
-            $countryIsoCode = is_array($country) ? ($country['iso_code'] ?? null) : null;
-            $organisation = is_array($body) ? ($body['organisation'] ?? null) : null;
-            $ip = is_array($body) ? ($body['ip'] ?? null) : null;
+            $countryIsoCode = Arr::get($body, 'country.iso_code');
+            $organisation = Arr::get($body, 'organisation');
+            $ip = Arr::get($body, 'ip');
 
             if (!is_string($countryIsoCode) || !is_string($organisation)) {
                 return false;
@@ -69,9 +50,8 @@ class IpValidation extends AbstractRequestValidation
             $this->countryIsoCode = $countryIsoCode;
             $this->organisation = $organisation;
 
-            return $response->getStatusCode() === 200 && $ip === $this->proxyHost->ip;
-        }
-        catch (\Throwable $e) {
+            return $response->getStatusCode() === 200 && $ip === $this->proxyHost->ip();
+        } catch (\Throwable $e) {
             $this->error = new ResponseError($e);
             return false;
         }
