@@ -82,6 +82,14 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 
 ### Added
 
+- `ProxyValidation::$httpTunnel` (`?MethodsValidation`) — a separate **CONNECT-tunnel-to-:80**
+  capability check, distinct from `$http` (forward proxying). It reflects how a chained
+  proxy / forward-proxy gateway reaches an exit (tunnel, then request), which many HTTP
+  proxies treat differently from forward proxying (some forward `:80` yet refuse `CONNECT`
+  to it). Run for `Protocol::Http` proxies only — SOCKS always tunnel, so `$http` already
+  covers them and `$httpTunnel` stays `null`. Implemented as the same client reconfigured
+  via `withOptions()` to force `CURLOPT_HTTPPROXYTUNNEL`; the validation classes themselves
+  stay transport-agnostic. JSON output gains an `httpTunnel` object alongside `http`/`https`.
 - `Arr::get()` — a small dot-notation accessor for safely reading values out of
   decoded JSON of unknown shape (e.g. `Arr::get($body, 'country.iso_code')`),
   replacing the repeated `is_array(...) ? (...['k'] ?? null) : null` pattern.

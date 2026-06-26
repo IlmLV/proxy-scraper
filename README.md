@@ -253,7 +253,8 @@ This library can also be used for proxy capability validation:
   - anonymous (has proxy related headers), 
   - exposed (has origin IP exposure)
 - if proxy ***server IP*** matches server by whom request is performed
-- ***HTTPS*** request support
+- ***HTTP*** support — **forward** proxying (`http`) and a separate **CONNECT-tunnel to :80** check (`httpTunnel`; how chained proxies / forward-proxy gateways reach an exit — run for HTTP proxies only, since SOCKS always tunnel)
+- ***HTTPS*** request support (CONNECT tunnel to :443)
 - various ***request methods***: GET, POST, PUT, OPTIONS, HEAD, DELETE, PATCH
 - huge amount of ***request headers*** if they are not modified by proxy - tested in each request method
 - optional ***domain*** reachability checks — opt-in, none run by default; ships with `example.com` as a reference you extend (see [Custom domain validators](#custom-domain-validators))
@@ -273,6 +274,29 @@ use IlmLV\ProxyScraper\Validations\ProxyValidation;
 $validation = ProxyValidation::make('http://1.1.1.1:80')->run();
 
 dump($validation);
+```
+
+`run()` returns the populated `ProxyValidation`; read each capability off its properties:
+
+| Property | Type | Meaning |
+| --- | --- | --- |
+| `valid` | `bool` | Overall validity (`false` if a check threw — see `error`). |
+| `error` | `?ResponseError` | Set when the run aborted. |
+| `anonymityLevel` | `?string` | `elite` / `anonymous` / `exposed`. |
+| `ip` | `?IpValidation` | Whether the egress IP matches the proxy host, plus its country / organisation. |
+| `http` | `?MethodsValidation` | **Forward** HTTP support (absolute-form requests). For a SOCKS proxy this is its tunnel — SOCKS has no forward mode. |
+| `httpTunnel` | `?MethodsValidation` | **CONNECT-tunnel-to-:80** support — how a chained proxy / forward-proxy gateway reaches the exit. Run for HTTP proxies only (SOCKS are already covered by `http`); `null` otherwise. |
+| `https` | `?MethodsValidation` | HTTPS support (CONNECT tunnel to :443). |
+| `domains` | `?DomainsValidation` | Opt-in per-domain reachability (see below). |
+| `ipVersion` | `?IpVersionValidation` | IPv4 / IPv6 egress capability. |
+| `validatedAt` | `DateTimeInterface` | When the run executed. |
+
+Each `MethodsValidation` exposes a per-method result plus an average `latency`:
+
+```php
+$validation->http->get->valid;          // forward GET worked
+$validation->httpTunnel?->post->valid;  // CONNECT-tunnel POST worked (null for SOCKS)
+$validation->https->latency;            // average HTTPS latency (seconds)
 ```
 
 ### Custom domain validators

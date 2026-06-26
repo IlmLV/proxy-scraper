@@ -6,6 +6,7 @@ namespace IlmLV\ProxyScraper\Validations;
 
 use IlmLV\ProxyScraper\Arr;
 use IlmLV\ProxyScraper\Entities\Host;
+use IlmLV\ProxyScraper\Entities\Protocol;
 use IlmLV\ProxyScraper\Entities\Proxy;
 use IlmLV\ProxyScraper\Entities\RandomUserAgent;
 use IlmLV\ProxyScraper\Entities\ResponseError;
@@ -32,6 +33,7 @@ class ProxyValidation implements ValidationInterface
     public ?IpValidation $ip = null;
 
     public ?MethodsValidation $http = null;
+    public ?MethodsValidation $httpTunnel = null;
     public ?MethodsValidation $https = null;
     public ?DomainsValidation $domains = null;
     public ?IpVersionValidation $ipVersion = null;
@@ -90,8 +92,21 @@ class ProxyValidation implements ValidationInterface
             $this->validatedAt = new \DateTime();
             $this->anonymityLevel = AnonymityLevelValidation::make($this->realIp(), $this->client)->run()->anonymityLevel;
             $this->ip = IpValidation::make($this->proxy->host, $this->client)->run();
+            // $http is the proxy's default HTTP behavior, via the forward
+            // client: classic forward proxying for an HTTP proxy, the socks
+            // tunnel for a SOCKS proxy. ($https is the CONNECT-to-:443 check —
+            // transport-driven by the URL scheme.)
             $this->http = MethodsValidation::make($this->httpUrl, $this->client)->run();
             $this->https = MethodsValidation::make($this->httpsUrl, $this->client)->run();
+
+            // Separate CONNECT-tunnel-to-:80 capability — how a chained proxy /
+            // forward-proxy gateway reaches the exit. Only HTTP proxies need this
+            // distinct check, because forward and CONNECT differ for them (many
+            // forward :80 yet refuse CONNECT to :80).
+            if ($this->proxy->protocol === Protocol::Http && defined('CURLOPT_HTTPPROXYTUNNEL')) {
+                $tunnelClient = $this->client->withOptions(['extra' => ['curl' => [CURLOPT_HTTPPROXYTUNNEL => true]]]);
+                $this->httpTunnel = MethodsValidation::make($this->httpUrl, $tunnelClient)->run();
+            }
             $this->domains = DomainsValidation::make($this->client)->setValidators($this->domainValidators)->run();
             $this->ipVersion = IpVersionValidation::make($this->client)->run();
         } catch (\Throwable $e) {
