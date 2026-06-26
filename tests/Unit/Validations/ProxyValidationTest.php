@@ -30,6 +30,13 @@ class ProxyValidationTest extends TestCase
         $this->assertTrue($validation->http->get->valid);
         $this->assertTrue($validation->https->get->valid);
 
+        // An HTTP proxy also gets the separate CONNECT-tunnel-to-:80 capability
+        // check, probed across all methods.
+        $this->assertInstanceOf(MethodsValidation::class, $validation->httpTunnel);
+        foreach (['get', 'post', 'put', 'options', 'head', 'delete', 'patch'] as $method) {
+            $this->assertTrue($validation->httpTunnel->{$method}->valid, "tunnel {$method} should validate");
+        }
+
         $this->assertInstanceOf(DomainsValidation::class, $validation->domains);
         $this->assertTrue($validation->domains->{'example.com'}->valid);
 
@@ -39,6 +46,51 @@ class ProxyValidationTest extends TestCase
 
         // timestamp is non-deterministic, assert only its type
         $this->assertInstanceOf(\DateTimeInterface::class, $validation->validatedAt);
+    }
+
+    public function testHttpProxyTunnelCheckForcesConnectWhileHttpStaysForward(): void
+    {
+        if (!defined('CURLOPT_HTTPPROXYTUNNEL')) {
+            $this->markTestSkipped('ext-curl not loaded');
+        }
+
+        $sawTunnel = false;
+        $sawForward = false;
+        $client = MockClientFactory::router(function (string $method, string $url, array $options) use (&$sawTunnel, &$sawForward): MockResponse {
+            if (str_contains($url, 'whoami') && ($options['proxy'] ?? null) !== false) {
+                if (($options['extra']['curl'][CURLOPT_HTTPPROXYTUNNEL] ?? false) === true) {
+                    $sawTunnel = true;
+                } else {
+                    $sawForward = true;
+                }
+                if ($method === 'HEAD') {
+                    return new MockResponse('', ['http_code' => 200]);
+                }
+                return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
+            }
+            if (($options['proxy'] ?? null) === false) {
+                return new MockResponse(MockClientFactory::load('Validations/realip.json'));
+            }
+            return new MockResponse(json_encode(['ip' => '1.2.3.4']), ['http_code' => 200]);
+        });
+
+        ProxyValidation::make('http://1.2.3.4:8080', $client)->run();
+
+        $this->assertTrue($sawTunnel, 'httpTunnel check must force a CONNECT tunnel');
+        $this->assertTrue($sawForward, '$http must stay a forward request');
+    }
+
+    public function testSocksProxySkipsSeparateTunnelCheck(): void
+    {
+        // A SOCKS proxy has a single mode (always a tunnel), so $http already
+        // represents it and the separate CONNECT-tunnel probe is not run —
+        // httpTunnel stays null while $http still validates.
+        $validation = ProxyValidation::make('socks5://1.2.3.4:1080', self::happyPathClient())->run();
+
+        $this->assertTrue($validation->valid);
+        $this->assertInstanceOf(MethodsValidation::class, $validation->http);
+        $this->assertTrue($validation->http->get->valid);
+        $this->assertNull($validation->httpTunnel);
     }
 
     public function testAnonymityFailureDoesNotAbortSiblingValidations(): void
@@ -100,6 +152,7 @@ class ProxyValidationTest extends TestCase
         $this->assertNull($validation->anonymityLevel);
         $this->assertNull($validation->ip);
         $this->assertNull($validation->http);
+        $this->assertNull($validation->httpTunnel);
         $this->assertNull($validation->https);
         $this->assertNull($validation->domains);
         $this->assertNull($validation->ipVersion);
