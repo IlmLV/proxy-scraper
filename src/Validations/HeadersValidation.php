@@ -81,7 +81,7 @@ class HeadersValidation extends AbstractRequestValidation
     public function validate(): bool
     {
         try {
-            $requestHeaders = self::HEADER_VALUES['common'] + self::HEADER_VALUES[$this->method];
+            $requestHeaders = self::HEADER_VALUES['common'] + (self::HEADER_VALUES[$this->method] ?? []);
 
             $response = $this->request($this->method, $this->url, ['headers' => $requestHeaders]);
 

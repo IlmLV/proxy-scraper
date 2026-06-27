@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace IlmLV\ProxyScraper\Validations;
 
+use JsonSerializable;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 /**
@@ -15,7 +16,7 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
  * an HTTP CONNECT or SOCKS5h proxy (which resolves the hostname itself) is
  * forced to open a connection of the matching address family.
  */
-class IpVersionValidation implements ValidationInterface
+class IpVersionValidation implements JsonSerializable, ValidationInterface
 {
     public const IPV4_URL = ValidationEndpoints::IPV4;
     public const IPV6_URL = ValidationEndpoints::IPV6;
@@ -69,5 +70,13 @@ class IpVersionValidation implements ValidationInterface
         $this->ipv6 = EgressValidation::make($this->ipv6Url, $this->client)->run();
 
         return $this;
+    }
+
+    /**
+     * @return array<string, EgressValidation|null>
+     */
+    public function jsonSerialize(): array
+    {
+        return ['ipv4' => $this->ipv4, 'ipv6' => $this->ipv6];
     }
 }

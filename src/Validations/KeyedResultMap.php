@@ -8,7 +8,7 @@ namespace IlmLV\ProxyScraper\Validations;
  * Read accessors shared by the validation aggregators that expose their results
  * keyed by string ({@see MethodsValidation} by HTTP method, {@see DomainsValidation}
  * by domain name). The backing map is supplied by {@see resultMap()}; results are
- * built during construction. Keeping these accessors in one place guarantees both
+ * built when run() executes. Keeping these accessors in one place guarantees both
  * aggregators behave identically and avoids dynamic-property deprecations.
  */
 trait KeyedResultMap
