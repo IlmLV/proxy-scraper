@@ -12,7 +12,7 @@
 
 # Proxy Scraper and Validator
 
-Scrape free proxy lists from 25 live, tested sources and individually validate proxy
+Scrape free proxy lists from 36 live, tested sources and individually validate proxy
 capabilities — anonymity level, latency, HTTP(S) method support and more. Supports
 **http / https / socks4 / socks5** proxies.
 
