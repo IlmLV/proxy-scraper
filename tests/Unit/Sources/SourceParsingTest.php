@@ -37,6 +37,7 @@ class SourceParsingTest extends TestCase
             'clarketm'       => [Sources\Clarketm::class, 'http'],
             'hookzof socks5' => [Sources\Hookzof::class, 'socks5'],
             'monosans http'  => [Sources\Monosans::class, 'http'],
+            'themiralay'     => [Sources\Themiralay::class, 'http'],
         ];
     }
 
@@ -63,13 +64,39 @@ class SourceParsingTest extends TestCase
     public static function multiProtocolSourceProvider(): array
     {
         return [
-            'aliilapro'   => [Sources\Aliilapro::class, ['http', 'socks4', 'socks5']],
-            'proxyscrape' => [Sources\ProxyScrapeCom::class, ['http', 'socks4', 'socks5']],
-            'roosterkid'  => [Sources\Roosterkid::class, ['https', 'socks4', 'socks5']],
+            'aliilapro'     => [Sources\Aliilapro::class, ['http', 'socks4', 'socks5']],
+            'ercindedeoglu' => [Sources\ErcinDedeoglu::class, ['http', 'socks4', 'socks5']],
+            'hproxy-com'    => [Sources\HproxyCom::class, ['http', 'https', 'socks4', 'socks5']],
+            'openproxylist' => [Sources\OpenProxyListXyz::class, ['http', 'socks4', 'socks5']],
+            'proxyscrape'   => [Sources\ProxyScrapeCom::class, ['http', 'socks4', 'socks5']],
+            'r00tee'        => [Sources\R00tee::class, ['https', 'socks4', 'socks5']],
+            'rdavydov'      => [Sources\Rdavydov::class, ['http', 'socks4', 'socks5']],
+            'roosterkid'    => [Sources\Roosterkid::class, ['https', 'socks4', 'socks5']],
+            'sevenworksdev' => [Sources\SevenworksDev::class, ['http', 'https', 'socks4', 'socks5']],
+            'solispirit'    => [Sources\SoliSpirit::class, ['http', 'https', 'socks4', 'socks5']],
+            'vpslabcloud'   => [Sources\VPSLabCloud::class, ['http', 'socks4', 'socks5']],
+            'zaeem20'       => [Sources\Zaeem20::class, ['http', 'https', 'socks4', 'socks5']],
             'shiftytr'    => [Sources\ShiftyTR::class, ['http', 'https', 'socks4', 'socks5']],
             'thespeedx'   => [Sources\TheSpeedX::class, ['http', 'socks4', 'socks5']],
             'vakhov'      => [Sources\Vakhov::class, ['http', 'https', 'socks4', 'socks5']],
         ];
+    }
+
+    public function testVpsLabCloudSkipsCommentHeaders(): void
+    {
+        // Real VPSLab files carry "#" comment headers and CRLF line endings; only the
+        // bare ip:port rows must survive, with the per-file protocol prepended.
+        $body = MockClientFactory::load('Sources/commented-list.txt');
+        $client = MockClientFactory::router(fn (): MockResponse => new MockResponse($body));
+
+        $proxies = array_map('strval', iterator_to_array((new Sources\VPSLabCloud($client))->get(), false));
+
+        // 2 proxies per protocol (http, socks4, socks5); the 3 comment lines and the blank line are dropped
+        $this->assertSame([
+            'http://1.2.3.4:8080', 'http://5.6.7.8:3128',
+            'socks4://1.2.3.4:8080', 'socks4://5.6.7.8:3128',
+            'socks5://1.2.3.4:8080', 'socks5://5.6.7.8:3128',
+        ], $proxies);
     }
 
     #[DataProvider('tableHttpSourceProvider')]
@@ -117,10 +144,11 @@ class SourceParsingTest extends TestCase
         $this->assertSame('https://5.6.7.8:3128', (string) $proxies[1]);
     }
 
-    public function testPrefixedListSourcePreservesPerLineProtocol(): void
+    #[DataProvider('prefixedListSourceProvider')]
+    public function testPrefixedListSourcePreservesPerLineProtocol(string $class): void
     {
         // Lines already carry the scheme; the protocol is read per line, not prepended.
-        $scraper = new Sources\Proxifly(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
+        $scraper = new $class(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -129,6 +157,14 @@ class SourceParsingTest extends TestCase
             ['http://1.2.3.4:8080', 'socks5://5.6.7.8:1080', 'socks4://9.10.11.12:1081'],
             $proxies
         );
+    }
+
+    public static function prefixedListSourceProvider(): array
+    {
+        return [
+            'proxifly' => [Sources\Proxifly::class],
+            'bes-js'   => [Sources\BesJs::class],
+        ];
     }
 
     public function testGeonodeJsonListYieldsOneProxyPerProtocol(): void

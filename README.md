@@ -21,7 +21,7 @@ capabilities — anonymity level, latency, HTTP(S) method support and more. Supp
 
 ## Why this library
 
-- **Batteries included** — 25 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in a separate weekly CI job; add your own in a few lines.
+- **Batteries included** — 36 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in a separate weekly CI job; add your own in a few lines.
 - **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
 - **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
 - **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
@@ -177,30 +177,41 @@ foreach ($proxies->errors() as $scraper => $exception) {
 ## Proxy scraper sources
 Currently implemented proxy sources:
 - [ALIILAPRO/Proxy](https://github.com/ALIILAPRO/Proxy) (http/socks4/socks5)
+- [Bes-js/public-proxy-list](https://github.com/Bes-js/public-proxy-list) (http/socks4/socks5)
 - [blogspotproxy.blogspot.com](https://blogspotproxy.blogspot.com/)
 - [checkerproxy.net](https://checkerproxy.net)
 - [clarketm/proxy-list](https://github.com/clarketm/proxy-list/blob/master/proxy-list.txt)
+- [ErcinDedeoglu/proxies](https://github.com/ErcinDedeoglu/proxies) (http/socks4/socks5)
 - [free-proxy-list.net](https://www.free-proxy-list.net)
 - [free-proxy-list.net/anonymous-proxy.html](https://free-proxy-list.net/anonymous-proxy.html)
 - [free-proxy-list.net/uk-proxy.html](https://free-proxy-list.net/uk-proxy.html)
 - [freeproxy.world](https://www.freeproxy.world/) (http/https/socks4/socks5)
 - [geonode.com](https://geonode.com/free-proxy-list) (http/https/socks4/socks5)
 - [hookzof/socks5_list](https://github.com/hookzof/socks5_list) (socks5)
+- [hproxy-com/free-proxy-list](https://github.com/hproxy-com/free-proxy-list) (http/https/socks4/socks5)
 - [mmpx12/proxy-list](https://github.com/mmpx12/proxy-list) (http/socks4/socks5)
 - [monosans/proxy-list](https://github.com/monosans/proxy-list) (http)
+- [openproxylist.xyz](https://api.openproxylist.xyz/) (http/socks4/socks5)
 - [proxifly/free-proxy-list](https://github.com/proxifly/free-proxy-list) (http/https/socks4/socks5)
 - [proxy11.com](http://proxy11.com/free-proxy) (http)
 - [proxylistplus.com](https://list.proxylistplus.com/Fresh-HTTP-Proxy-List-1) (http)
 - [proxyscrape.com](https://proxyscrape.com/free-proxy-list) (http/socks4/socks5)
 - [pubproxy.com](http://pubproxy.com/)
+- [r00tee/Proxy-List](https://github.com/r00tee/Proxy-List) (https/socks4/socks5)
+- [rdavydov/proxy-list](https://github.com/rdavydov/proxy-list) (http/socks4/socks5)
 - [roosterkid/openproxylist](https://github.com/roosterkid/openproxylist) (https/socks4/socks5)
+- [SevenworksDev/proxy-list](https://github.com/SevenworksDev/proxy-list) (http/https/socks4/socks5)
 - [ShiftyTR/Proxy-List](https://github.com/ShiftyTR/Proxy-List) (http/https/socks4/socks5)
 - [socks-proxy.net](https://www.socks-proxy.net)
+- [SoliSpirit/proxy-list](https://github.com/SoliSpirit/proxy-list) (http/https/socks4/socks5)
 - [spys.me](https://spys.me/proxy.txt) (http)
 - [sslproxies.org](https://www.sslproxies.org)
 - [TheSpeedX/PROXY-List](https://github.com/TheSpeedX/PROXY-List) (http/socks4/socks5)
+- [themiralay/Proxy-List-World](https://github.com/themiralay/Proxy-List-World) (http)
 - [us-proxy.org](https://www.us-proxy.org)
 - [vakhov/fresh-proxy-list](https://github.com/vakhov/fresh-proxy-list) (http/https/socks4/socks5)
+- [VPSLabCloud/VPSLab-Free-Proxy-List](https://github.com/VPSLabCloud/VPSLab-Free-Proxy-List) (http/socks4/socks5)
+- [Zaeem20/FREE_PROXIES_LIST](https://github.com/Zaeem20/FREE_PROXIES_LIST) (http/https/socks4/socks5)
 
 Feel free to request more sources.
 
