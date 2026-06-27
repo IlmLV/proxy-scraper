@@ -69,6 +69,26 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 - `RandomUserAgent`'s magic `__toString()` is replaced by a static
   `RandomUserAgent::random(): string`. `(string) new RandomUserAgent()` no longer
   works; use `RandomUserAgent::random()`.
+- **Source classes renamed, and the multi-protocol families consolidated.** Each
+  provider is now a single class named `<Provider>[Variant]` after its identity
+  (domain or GitHub owner/repo), dropping protocol suffixes and the
+  `ProxyList`/`OpenProxyList`/`FreshProxyList` filler. The six multi-protocol families
+  collapse to one class each that emits all their protocols (via the new
+  `TextListScraper::$protocols` map):
+  `AliilaproProxyList{Http,Socks4,Socks5}` → `Aliilapro`;
+  `ShiftyTRProxyList{Http,Https,Socks4,Socks5}` → `ShiftyTR`;
+  `VakhovFreshProxyList{Http,Https,Socks4,Socks5}` → `Vakhov`;
+  `ProxyScrapeCom{Http,Socks4,Socks5}` → `ProxyScrapeCom`;
+  `RoosterkidOpenProxyList{Https,Socks4,Socks5}` → `Roosterkid`;
+  `TheSpeedXProxyList{Http,Socks4,Socks5}` → `TheSpeedX`.
+  Standalone sources renamed: `MonosansProxyListHttp` → `Monosans`,
+  `ClarketmProxyList` → `Clarketm`, `Mmpx12ProxyList` → `Mmpx12`,
+  `HookzofSocks5List` → `Hookzof`, `ProxyListPlusHttp` → `ProxyListPlus`,
+  `ProxiflyProxyList` → `Proxifly`, `GeonodeProxyList` → `Geonode`,
+  `SpysMeProxyList` → `SpysMe`. Update any `Sources\*::class` references passed to
+  `only()`/`add()` and any `scraperConfig` keys. Consequently `stats()` and `errors()`
+  now report one key per provider — a consolidated source's `stats()` value carries all
+  its protocol counts (e.g. `['http' => N, 'socks4' => M, 'socks5' => K]`).
 
 ### Changed (non-breaking)
 
@@ -96,6 +116,12 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 - `Port::$value` (`int`) exposes the underlying value directly, complementing
   `__toString()` and matching `Host`'s public surface. (`Protocol`'s value is its enum
   backing value, `Protocol::Http->value` — see the breaking-API note above.)
+- `TextListScraper::$protocols` — a `protocol => URL` map letting one source publish
+  several per-protocol lists from the same provider. Each URL is fetched and its key
+  prepended as the scheme; a single dead endpoint is skipped rather than aborting the
+  source. Backs the consolidated multi-protocol sources (see the breaking-API note).
+- `IpVersionValidation` now implements `JsonSerializable`, emitting an explicit
+  `{"ipv4": ..., "ipv6": ...}` shape like the other aggregators.
 
 ### Fixed (behaviour)
 
@@ -136,6 +162,15 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
   names. A custom `$requestMethods` list no longer triggers PHP 8.2 dynamic-property
   deprecations or leaves declared properties uninitialised; results are stored in a
   keyed map exposed read-only as `->get`, `->post`, … and the JSON shape is unchanged.
+- Re-running a `MethodsValidation` or `DomainsValidation` (calling `run()` again, e.g.
+  after narrowing the configured set via `setRequestMethods()` / `setValidators()`) now
+  replaces the previous results instead of merging stale ones in.
+- `IpVersionValidation::$ipv4` / `$ipv6` are now nullable (default `null`), like the
+  other aggregators' result properties; reading them before `run()` returns `null`
+  instead of throwing an uninitialised-property error.
+- `HeadersValidation` no longer fails with a confusing wrapped `TypeError` when probed
+  with an HTTP method outside its known set — an unknown method simply sends the common
+  header set.
 
 ### Internal
 

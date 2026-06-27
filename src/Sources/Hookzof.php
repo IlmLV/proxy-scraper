@@ -6,7 +6,7 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class HookzofSocks5List extends TextListScraper
+final class Hookzof extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt';
 

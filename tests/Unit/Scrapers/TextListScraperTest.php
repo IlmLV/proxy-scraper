@@ -4,9 +4,9 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
-use IlmLV\ProxyScraper\Sources\ClarketmProxyList;
-use IlmLV\ProxyScraper\Sources\HookzofSocks5List;
-use IlmLV\ProxyScraper\Sources\ProxiflyProxyList;
+use IlmLV\ProxyScraper\Sources\Clarketm;
+use IlmLV\ProxyScraper\Sources\Hookzof;
+use IlmLV\ProxyScraper\Sources\Proxifly;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -24,7 +24,7 @@ class TextListScraperTest extends TestCase
             return new MockResponse("1.2.3.4:8080\n");
         });
 
-        $scraper = new ClarketmProxyList($client, ['country' => 'US']);
+        $scraper = new Clarketm($client, ['country' => 'US']);
         iterator_to_array($scraper->get(), false);
 
         $this->assertNotNull($requestedUrl);
@@ -33,7 +33,7 @@ class TextListScraperTest extends TestCase
 
     public function testParsesIpPortLinesAndSkipsInvalid(): void
     {
-        $scraper = new ClarketmProxyList(MockClientFactory::fromFixture('Sources/text-list.txt'));
+        $scraper = new Clarketm(MockClientFactory::fromFixture('Sources/text-list.txt'));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
@@ -45,7 +45,7 @@ class TextListScraperTest extends TestCase
 
     public function testAppliesConfiguredProtocol(): void
     {
-        $scraper = new HookzofSocks5List(MockClientFactory::fromFixture('Sources/text-list.txt'));
+        $scraper = new Hookzof(MockClientFactory::fromFixture('Sources/text-list.txt'));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
@@ -54,9 +54,9 @@ class TextListScraperTest extends TestCase
 
     public function testNullProtocolReadsSchemeFromEachLine(): void
     {
-        // ProxiflyProxyList leaves $protocol null, so the scheme is read per line
+        // Proxifly leaves $protocol null, so the scheme is read per line
         $body = "http://1.2.3.4:8080\nsocks5://5.6.7.8:1080\nsocks4://9.10.11.12:1081\n";
-        $scraper = new ProxiflyProxyList(MockClientFactory::fromString($body));
+        $scraper = new Proxifly(MockClientFactory::fromString($body));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -70,7 +70,7 @@ class TextListScraperTest extends TestCase
     {
         // With $protocol null a bare "ip:port" line has no scheme to parse and is dropped
         $body = "http://1.2.3.4:8080\n5.6.7.8:3128\nnot-a-proxy-line\n";
-        $scraper = new ProxiflyProxyList(MockClientFactory::fromString($body));
+        $scraper = new Proxifly(MockClientFactory::fromString($body));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -83,7 +83,7 @@ class TextListScraperTest extends TestCase
         // trailing \r on the port, which would fail Port validation and silently
         // drop every proxy.
         $body = "1.2.3.4:8080\r\n  5.6.7.8:3128  \r\n\r\n9.10.11.12:80\r\n";
-        $scraper = new ClarketmProxyList(MockClientFactory::fromString($body));
+        $scraper = new Clarketm(MockClientFactory::fromString($body));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
@@ -95,7 +95,7 @@ class TextListScraperTest extends TestCase
 
     public function testHttpFailureThrowsScraperException(): void
     {
-        $scraper = new ClarketmProxyList(MockClientFactory::fromString('', 500));
+        $scraper = new Clarketm(MockClientFactory::fromString('', 500));
 
         $this->expectException(ScraperException::class);
         iterator_to_array($scraper->get());

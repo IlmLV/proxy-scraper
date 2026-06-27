@@ -6,7 +6,7 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class ClarketmProxyList extends TextListScraper
+final class Clarketm extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/clarketm/proxy-list/master/proxy-list-raw.txt';
 

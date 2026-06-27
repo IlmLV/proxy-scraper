@@ -34,9 +34,9 @@ class SourceParsingTest extends TestCase
     public static function textListSourceProvider(): array
     {
         return [
-            'clarketm'       => [Sources\ClarketmProxyList::class, 'http'],
-            'hookzof socks5' => [Sources\HookzofSocks5List::class, 'socks5'],
-            'monosans http'  => [Sources\MonosansProxyListHttp::class, 'http'],
+            'clarketm'       => [Sources\Clarketm::class, 'http'],
+            'hookzof socks5' => [Sources\Hookzof::class, 'socks5'],
+            'monosans http'  => [Sources\Monosans::class, 'http'],
         ];
     }
 
@@ -120,7 +120,7 @@ class SourceParsingTest extends TestCase
     public function testPrefixedListSourcePreservesPerLineProtocol(): void
     {
         // Lines already carry the scheme; the protocol is read per line, not prepended.
-        $scraper = new Sources\ProxiflyProxyList(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
+        $scraper = new Sources\Proxifly(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -133,7 +133,7 @@ class SourceParsingTest extends TestCase
 
     public function testGeonodeJsonListYieldsOneProxyPerProtocol(): void
     {
-        $scraper = new Sources\GeonodeProxyList(MockClientFactory::fromFixture('Sources/geonode.json'));
+        $scraper = new Sources\Geonode(MockClientFactory::fromFixture('Sources/geonode.json'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -146,7 +146,7 @@ class SourceParsingTest extends TestCase
 
     public function testSpysMeWhitespaceListSkipsBanner(): void
     {
-        $scraper = new Sources\SpysMeProxyList(MockClientFactory::fromFixture('Sources/spys-me.txt'));
+        $scraper = new Sources\SpysMe(MockClientFactory::fromFixture('Sources/spys-me.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -154,9 +154,9 @@ class SourceParsingTest extends TestCase
         $this->assertSame(['http://1.2.3.4:8080', 'http://5.6.7.8:3128'], $proxies);
     }
 
-    public function testProxyListPlusHttpTable(): void
+    public function testProxyListPlusTable(): void
     {
-        $scraper = new Sources\ProxyListPlusHttp(MockClientFactory::fromFixture('Sources/proxylistplus.html'));
+        $scraper = new Sources\ProxyListPlus(MockClientFactory::fromFixture('Sources/proxylistplus.html'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -186,7 +186,7 @@ class SourceParsingTest extends TestCase
 
     public function testMmpx12SkipsCorruptPrefixedLine(): void
     {
-        $scraper = new Sources\Mmpx12ProxyList(MockClientFactory::fromFixture('Sources/mmpx12.txt'));
+        $scraper = new Sources\Mmpx12(MockClientFactory::fromFixture('Sources/mmpx12.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 

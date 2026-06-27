@@ -56,7 +56,7 @@ abstract class JsonListScraper extends ProxyScraper
     /**
      * Build a Proxy from one list item, or null when the item is malformed.
      * A single bad entry is skipped rather than aborting the whole source,
-     * consistent with the text/table scrapers and GeonodeProxyList.
+     * consistent with the text/table scrapers and Geonode.
      *
      * @param array<array-key, mixed> $item
      */

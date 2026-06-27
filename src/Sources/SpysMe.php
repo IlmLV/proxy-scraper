@@ -16,7 +16,7 @@ use IlmLV\ProxyScraper\ProxyScraper;
  * We take the first token of each line as ip:port; banner lines fail the Proxy
  * parse and are skipped automatically. The list is HTTP(S) proxies.
  */
-final class SpysMeProxyList extends ProxyScraper
+final class SpysMe extends ProxyScraper
 {
     protected string $url = 'https://spys.me/proxy.txt';
 

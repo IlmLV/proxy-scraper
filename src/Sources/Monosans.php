@@ -6,7 +6,7 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class MonosansProxyListHttp extends TextListScraper
+final class Monosans extends TextListScraper
 {
     protected string $url = 'https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt';
 
