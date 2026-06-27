@@ -6,9 +6,9 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class VakhovFreshProxyListHttp extends TextListScraper
+final class Monosans extends TextListScraper
 {
-    protected string $url = 'https://raw.githubusercontent.com/vakhov/fresh-proxy-list/master/http.txt';
+    protected string $url = 'https://raw.githubusercontent.com/monosans/proxy-list/main/proxies/http.txt';
 
     protected ?string $protocol = 'http';
 

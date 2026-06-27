@@ -5,9 +5,9 @@ namespace IlmLV\ProxyScraper\Tests\Unit;
 use IlmLV\ProxyScraper\Exceptions\ProxyScraperException;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\LoadProxies;
-use IlmLV\ProxyScraper\Sources\ClarketmProxyList;
+use IlmLV\ProxyScraper\Sources\Clarketm;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
-use IlmLV\ProxyScraper\Sources\MonosansProxyListHttp;
+use IlmLV\ProxyScraper\Sources\Monosans;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Tests\Support\ThrowingScraper;
 use PHPUnit\Framework\TestCase;
@@ -63,12 +63,12 @@ class LoadProxiesTest extends TestCase
         });
 
         $proxies = LoadProxies::make([], $client)
-            ->only([FreeProxyListNet::class, ClarketmProxyList::class]);
+            ->only([FreeProxyListNet::class, Clarketm::class]);
 
         $this->assertSame(
             [
                 FreeProxyListNet::class => ['http' => 2],
-                ClarketmProxyList::class => ['http' => 3],
+                Clarketm::class => ['http' => 3],
             ],
             $proxies->stats()
         );
@@ -102,7 +102,7 @@ class LoadProxiesTest extends TestCase
         );
 
         $proxies = LoadProxies::make([], $client)
-            ->only([ClarketmProxyList::class, MonosansProxyListHttp::class]);
+            ->only([Clarketm::class, Monosans::class]);
 
         $this->assertCount(2, $proxies->get());
         $this->assertCount(1, $proxies->unique());

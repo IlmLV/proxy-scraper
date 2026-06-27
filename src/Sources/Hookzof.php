@@ -6,9 +6,9 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class TheSpeedXProxyListSocks5 extends TextListScraper
+final class Hookzof extends TextListScraper
 {
-    protected string $url = 'https://raw.githubusercontent.com/TheSpeedX/PROXY-List/master/socks5.txt';
+    protected string $url = 'https://raw.githubusercontent.com/hookzof/socks5_list/master/proxy.txt';
 
     protected ?string $protocol = 'socks5';
 

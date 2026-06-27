@@ -3,9 +3,11 @@
 namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
+use IlmLV\ProxyScraper\Scrapers\JsonListScraper;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Tests\Support\StubJsonListScraper;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class JsonListScraperTest extends TestCase
 {
@@ -46,5 +48,24 @@ class JsonListScraperTest extends TestCase
         $this->expectException(ScraperException::class);
 
         iterator_to_array($scraper->get(), false);
+    }
+
+    public function testProtocolsMapForcesProtocolOverridingField(): void
+    {
+        // Items carry no protocol field; the map key supplies it per fetched list
+        // (and would override one if present). The same body is served for both URLs.
+        $body = json_encode([['ip' => '1.2.3.4', 'port' => '8080']]);
+        $client = MockClientFactory::router(fn (): MockResponse => new MockResponse($body));
+
+        $scraper = new class ($client) extends JsonListScraper {
+            protected array $protocols = [
+                'http' => 'https://json.test/http',
+                'socks5' => 'https://json.test/socks5',
+            ];
+        };
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        $this->assertSame(['http://1.2.3.4:8080', 'socks5://1.2.3.4:8080'], $proxies);
     }
 }

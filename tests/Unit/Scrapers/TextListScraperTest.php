@@ -3,11 +3,13 @@
 namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
-use IlmLV\ProxyScraper\Sources\ClarketmProxyList;
-use IlmLV\ProxyScraper\Sources\ProxiflyProxyList;
-use IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks5;
+use IlmLV\ProxyScraper\Scrapers\TextListScraper;
+use IlmLV\ProxyScraper\Sources\Clarketm;
+use IlmLV\ProxyScraper\Sources\Hookzof;
+use IlmLV\ProxyScraper\Sources\Proxifly;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\MockHttpClient;
 use Symfony\Component\HttpClient\Response\MockResponse;
 
 class TextListScraperTest extends TestCase
@@ -22,7 +24,7 @@ class TextListScraperTest extends TestCase
             return new MockResponse("1.2.3.4:8080\n");
         });
 
-        $scraper = new ClarketmProxyList($client, ['country' => 'US']);
+        $scraper = new Clarketm($client, ['country' => 'US']);
         iterator_to_array($scraper->get(), false);
 
         $this->assertNotNull($requestedUrl);
@@ -31,7 +33,7 @@ class TextListScraperTest extends TestCase
 
     public function testParsesIpPortLinesAndSkipsInvalid(): void
     {
-        $scraper = new ClarketmProxyList(MockClientFactory::fromFixture('Sources/text-list.txt'));
+        $scraper = new Clarketm(MockClientFactory::fromFixture('Sources/text-list.txt'));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
@@ -43,7 +45,7 @@ class TextListScraperTest extends TestCase
 
     public function testAppliesConfiguredProtocol(): void
     {
-        $scraper = new ShiftyTRProxyListSocks5(MockClientFactory::fromFixture('Sources/text-list.txt'));
+        $scraper = new Hookzof(MockClientFactory::fromFixture('Sources/text-list.txt'));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
@@ -52,9 +54,9 @@ class TextListScraperTest extends TestCase
 
     public function testNullProtocolReadsSchemeFromEachLine(): void
     {
-        // ProxiflyProxyList leaves $protocol null, so the scheme is read per line
+        // Proxifly leaves $protocol null, so the scheme is read per line
         $body = "http://1.2.3.4:8080\nsocks5://5.6.7.8:1080\nsocks4://9.10.11.12:1081\n";
-        $scraper = new ProxiflyProxyList(MockClientFactory::fromString($body));
+        $scraper = new Proxifly(MockClientFactory::fromString($body));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -68,7 +70,7 @@ class TextListScraperTest extends TestCase
     {
         // With $protocol null a bare "ip:port" line has no scheme to parse and is dropped
         $body = "http://1.2.3.4:8080\n5.6.7.8:3128\nnot-a-proxy-line\n";
-        $scraper = new ProxiflyProxyList(MockClientFactory::fromString($body));
+        $scraper = new Proxifly(MockClientFactory::fromString($body));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -81,7 +83,7 @@ class TextListScraperTest extends TestCase
         // trailing \r on the port, which would fail Port validation and silently
         // drop every proxy.
         $body = "1.2.3.4:8080\r\n  5.6.7.8:3128  \r\n\r\n9.10.11.12:80\r\n";
-        $scraper = new ClarketmProxyList(MockClientFactory::fromString($body));
+        $scraper = new Clarketm(MockClientFactory::fromString($body));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
@@ -93,9 +95,71 @@ class TextListScraperTest extends TestCase
 
     public function testHttpFailureThrowsScraperException(): void
     {
-        $scraper = new ClarketmProxyList(MockClientFactory::fromString('', 500));
+        $scraper = new Clarketm(MockClientFactory::fromString('', 500));
 
         $this->expectException(ScraperException::class);
         iterator_to_array($scraper->get());
+    }
+
+    public function testProtocolsMapFetchesEachUrlPrependingItsScheme(): void
+    {
+        // Each per-protocol list is bare "ip:port"; the scheme comes from the map key.
+        $client = MockClientFactory::router(
+            fn (string $method, string $url) => new MockResponse("1.2.3.4:8080\n5.6.7.8:3128\n")
+        );
+
+        $proxies = array_map('strval', iterator_to_array($this->multiProtocolScraper($client)->get(), false));
+
+        $this->assertSame(
+            ['http://1.2.3.4:8080', 'http://5.6.7.8:3128', 'socks5://1.2.3.4:8080', 'socks5://5.6.7.8:3128'],
+            $proxies
+        );
+    }
+
+    public function testProtocolsMapSkipsDeadEndpointWithoutAbortingSiblings(): void
+    {
+        $client = MockClientFactory::router(function (string $method, string $url): MockResponse {
+            if (str_contains($url, 'socks5')) {
+                return new MockResponse('', ['http_code' => 500]);
+            }
+            return new MockResponse("1.2.3.4:8080\n");
+        });
+
+        $proxies = array_map('strval', iterator_to_array($this->multiProtocolScraper($client)->get(), false));
+
+        // the dead socks5 endpoint is skipped; the working http endpoint still yields
+        $this->assertSame(['http://1.2.3.4:8080'], $proxies);
+    }
+
+    public function testProtocolsMapAppendsConfiguredOptionsToEachUrl(): void
+    {
+        $urls = [];
+        $client = MockClientFactory::router(function (string $method, string $url) use (&$urls): MockResponse {
+            $urls[] = $url;
+            return new MockResponse("1.2.3.4:8080\n");
+        });
+
+        iterator_to_array($this->multiProtocolScraper($client, ['country' => 'US'])->get(), false);
+
+        $this->assertCount(2, $urls);
+        foreach ($urls as $url) {
+            $this->assertStringContainsString('country=US', $url);
+        }
+    }
+
+    /**
+     * A throwaway multi-protocol TextListScraper (no bundled source sets $protocols
+     * yet) backed by the given mock client.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function multiProtocolScraper(MockHttpClient $client, array $options = []): TextListScraper
+    {
+        return new class ($client, $options) extends TextListScraper {
+            protected array $protocols = [
+                'http' => 'https://example.test/http.txt',
+                'socks5' => 'https://example.test/socks5.txt',
+            ];
+        };
     }
 }

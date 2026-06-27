@@ -3,10 +3,12 @@
 namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
+use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 use IlmLV\ProxyScraper\Sources\FreeProxyListNet;
 use IlmLV\ProxyScraper\Sources\SocksProxyNet;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 class TableListScraperTest extends TestCase
 {
@@ -56,5 +58,24 @@ class TableListScraperTest extends TestCase
 
         $this->expectException(ScraperException::class);
         iterator_to_array($scraper->get());
+    }
+
+    public function testProtocolsMapForcesProtocolPerFetchedTable(): void
+    {
+        // Same one-row table served for both URLs; the map key supplies the
+        // protocol, so the protocol column is not consulted.
+        $row = '<table id="list"><tbody><tr><td>1.2.3.4</td><td>8080</td><td>XX</td></tr></tbody></table>';
+        $client = MockClientFactory::router(fn (): MockResponse => new MockResponse($row));
+
+        $scraper = new class ($client) extends TableListScraper {
+            protected array $protocols = [
+                'http' => 'https://table.test/http',
+                'socks5' => 'https://table.test/socks5',
+            ];
+        };
+
+        $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
+
+        $this->assertSame(['http://1.2.3.4:8080', 'socks5://1.2.3.4:8080'], $proxies);
     }
 }

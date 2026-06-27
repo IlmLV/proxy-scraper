@@ -18,10 +18,13 @@ use Symfony\Component\DomCrawler\Crawler as Dom;
  * - $rowPath              CSS selector for the proxy rows (default "table tbody tr").
  * - $colAddress/$colPort  zero-based column indices for host and port.
  * - $protocol             fixed protocol for every row; when null it is read from
- *                         column $colProtocol instead.
+ *                         column $colProtocol instead. A {@see ProxyScraper::$protocols}
+ *                         map key overrides this per fetched table.
  */
 abstract class TableListScraper extends ProxyScraper
 {
+    use MultiProtocolFetch;
+
     protected ?string $protocol = null;
     protected string $rowPath = 'table tbody tr';
     protected int $colAddress = 0;
@@ -32,12 +35,14 @@ abstract class TableListScraper extends ProxyScraper
      * @return Generator<int, Proxy>
      * @throws ScraperException
      */
-    public function get(): Generator
+    protected function parse(string $body, ?string $protocol): Generator
     {
-        $html = $this->fetch();
+        // The forced $protocol (a $protocols map key) wins; otherwise $this->protocol;
+        // a null result means the protocol is read from column $colProtocol per row.
+        $fixed = $protocol ?? $this->protocol;
 
         try {
-            $rows = (new Dom($html))->filter($this->rowPath);
+            $rows = (new Dom($body))->filter($this->rowPath);
         } catch (\Throwable $e) {
             throw new ScraperException($e->getMessage(), $e->getCode(), $e);
         }
@@ -47,7 +52,7 @@ abstract class TableListScraper extends ProxyScraper
 
             // Skip header/spacer/malformed rows that lack the columns we read;
             // Crawler::text() throws on an empty node, which would abort the scrape.
-            $needed = $this->protocol === null
+            $needed = $fixed === null
                 ? max($this->colAddress, $this->colPort, $this->colProtocol)
                 : max($this->colAddress, $this->colPort);
             if ($cells->count() <= $needed) {
@@ -56,10 +61,10 @@ abstract class TableListScraper extends ProxyScraper
 
             $address = $cells->eq($this->colAddress)->text();
             $port = $cells->eq($this->colPort)->text();
-            $protocol = $this->protocol ?: strtolower($cells->eq($this->colProtocol)->text());
+            $rowProtocol = $fixed ?? strtolower($cells->eq($this->colProtocol)->text());
 
             try {
-                yield $this->makeProxy($address, $port, $protocol);
+                yield $this->makeProxy($address, $port, $rowProtocol);
             } catch (InvalidArgumentException $e) {
                 continue;
             }

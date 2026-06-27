@@ -32,6 +32,19 @@ abstract class ProxyScraper implements ScraperInterface
     protected string $url;
 
     /**
+     * Optional `protocol => URL` map for sources that publish one list/endpoint
+     * per protocol on the same provider. When set, the format scrapers (text /
+     * table / JSON, via {@see Scrapers\MultiProtocolFetch}) fetch each URL with the
+     * configured options applied and parse its body with that protocol forced,
+     * skipping a dead endpoint rather than aborting the source. When empty (the
+     * default) the single $url is used. Available on every scraper; a custom get()
+     * that does not consult it simply leaves it unused.
+     *
+     * @var array<string, string>
+     */
+    protected array $protocols = [];
+
+    /**
      * @var array<string, mixed>
      */
     protected array $options;
@@ -83,11 +96,11 @@ abstract class ProxyScraper implements ScraperInterface
     private function processOptions(array $options): array
     {
         // cast all booleans as string
-        return array_map(function ($a) {
-            if (is_bool($a)) {
-                return $a === true ? 'true' : 'false';
+        return array_map(function ($value) {
+            if (is_bool($value)) {
+                return $value === true ? 'true' : 'false';
             }
-            return $a;
+            return $value;
         }, $options);
     }
 
@@ -95,10 +108,19 @@ abstract class ProxyScraper implements ScraperInterface
     {
         $url = $values === [] ? $this->url : sprintf($this->url, ...$values);
 
+        return $this->appendOptions($url);
+    }
+
+    /**
+     * Append the configured scraper options to an already-built URL as a query
+     * string. Several sources already carry a query string (e.g. pubproxy.com's
+     * "?limit=5&format=json"); append with "&" in that case so configured options
+     * don't produce a second, URL-breaking "?". Used both by getUrl() and by
+     * multi-URL sources that build each endpoint themselves.
+     */
+    protected function appendOptions(string $url): string
+    {
         if ($this->options) {
-            // Several sources already carry a query string (e.g. pubproxy.com's
-            // "?limit=5&format=json"); append with "&" in that case so configured
-            // options don't produce a second, URL-breaking "?".
             $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($this->options);
         }
 

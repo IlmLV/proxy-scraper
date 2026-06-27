@@ -17,7 +17,7 @@ use IlmLV\ProxyScraper\ProxyScraper;
  * listed protocol here. A single page of 500 keeps us well under the public
  * rate limit (~100 req/h) without pagination.
  */
-final class GeonodeProxyList extends ProxyScraper
+final class Geonode extends ProxyScraper
 {
     protected string $url = 'https://proxylist.geonode.com/api/proxy-list?limit=500&page=1&sort_by=lastChecked&sort_type=desc';
 

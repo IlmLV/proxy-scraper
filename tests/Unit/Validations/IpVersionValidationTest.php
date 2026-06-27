@@ -52,4 +52,20 @@ class IpVersionValidationTest extends TestCase
         $this->assertFalse($validation->ipv4->valid);
         $this->assertFalse($validation->ipv6->valid);
     }
+
+    public function testSerialisesByAddressFamily(): void
+    {
+        $client = MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
+            $ip = str_contains($url, 'ipv6') ? '2001:db8::1' : '203.0.113.4';
+            return new MockResponse(json_encode(['ip' => $ip]), ['http_code' => 200]);
+        });
+
+        $validation = IpVersionValidation::make($client)->run();
+
+        $decoded = json_decode(json_encode($validation), true);
+
+        $this->assertSame(['ipv4', 'ipv6'], array_keys($decoded));
+        $this->assertTrue($decoded['ipv4']['valid']);
+        $this->assertSame('2001:db8::1', $decoded['ipv6']['ip']);
+    }
 }

@@ -12,7 +12,7 @@
 
 # Proxy Scraper and Validator
 
-Scrape free proxy lists from 39 live, tested sources and individually validate proxy
+Scrape free proxy lists from 25 live, tested sources and individually validate proxy
 capabilities — anonymity level, latency, HTTP(S) method support and more. Supports
 **http / https / socks4 / socks5** proxies.
 
@@ -21,7 +21,7 @@ capabilities — anonymity level, latency, HTTP(S) method support and more. Supp
 
 ## Why this library
 
-- **Batteries included** — 39 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in a separate weekly CI job; add your own in a few lines.
+- **Batteries included** — 25 proxy sources work out of the box, each parser unit-tested and probed live against its real endpoint in a separate weekly CI job; add your own in a few lines.
 - **Cron-aware polling** — each source declares a `SCHEDULE`; `scheduled()` only hits providers that are due.
 - **Deep validation** — anonymity (elite / anonymous / exposed), IP country & organisation, per-method latency, request-header leakage and multi-domain reachability.
 - **Resilient** — a failing source never aborts the batch; its exception is captured and exposed via `errors()`.
@@ -194,16 +194,11 @@ Currently implemented proxy sources:
 - [proxyscrape.com](https://proxyscrape.com/free-proxy-list) (http/socks4/socks5)
 - [pubproxy.com](http://pubproxy.com/)
 - [roosterkid/openproxylist](https://github.com/roosterkid/openproxylist) (https/socks4/socks5)
-- [ShiftyTR/Proxy-List](https://github.com/ShiftyTR/Proxy-List)
-- [ShiftyTR/Proxy-List/https.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/https.txt)
-- [ShiftyTR/Proxy-List/socks4.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/socks4.txt)
-- [ShiftyTR/Proxy-List/socks5.txt](https://github.com/ShiftyTR/Proxy-List/blob/master/socks5.txt)
+- [ShiftyTR/Proxy-List](https://github.com/ShiftyTR/Proxy-List) (http/https/socks4/socks5)
 - [socks-proxy.net](https://www.socks-proxy.net)
 - [spys.me](https://spys.me/proxy.txt) (http)
 - [sslproxies.org](https://www.sslproxies.org)
-- [TheSpeedX/PROXY-List/http.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/http.txt)
-- [TheSpeedX/PROXY-List/socks4.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks4.txt)
-- [TheSpeedX/PROXY-List/socks5.txt](https://github.com/TheSpeedX/PROXY-List/blob/master/socks5.txt)
+- [TheSpeedX/PROXY-List](https://github.com/TheSpeedX/PROXY-List) (http/socks4/socks5)
 - [us-proxy.org](https://www.us-proxy.org)
 - [vakhov/fresh-proxy-list](https://github.com/vakhov/fresh-proxy-list) (http/https/socks4/socks5)
 
@@ -216,6 +211,11 @@ Currently supported source data types:
 - [JSON object scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/JsonScraper.php)
 - [Table list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TableListScraper.php)
 - [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TextListScraper.php)
+
+Each of these accepts a `$protocols` map (`['http' => $urlA, 'socks5' => $urlB, …]`)
+when a provider publishes one endpoint per protocol: every URL is fetched and parsed
+with its key as the forced protocol, and a dead endpoint is skipped rather than aborting
+the source. Leave it empty to use the single `$url`.
 
 ### Define a custom source
 
@@ -239,12 +239,14 @@ foreach ($proxies->get() as $proxy) {
 }
 ```
 
-Bundled sources live in `src/Sources/`, one class per source, named
-`<Provider>[Variant]<Protocol>` (e.g. `FreeProxyListNet`, `ShiftyTRProxyListSocks5`).
-A source only sets `$url`, an optional `$protocol`, the format-specific knobs of its
-scraper base (see each `Scrapers/*` class docblock), and a `SCHEDULE`. Unlike a custom
-source, a bundled one is registered in `LoadProxies::$scrapers` so it runs under
-`all()`/`scheduled()`.
+Bundled sources live in `src/Sources/`, one class per provider, named
+`<Provider>[Variant]` after the provider's identity — its domain or GitHub
+owner/repo (e.g. `FreeProxyListNet`, `ShiftyTR`), with a `Variant` suffix only when
+one provider exposes several distinct lists (e.g. `FreeProxyListNetUkProxy`). A source
+sets `$url` (or a `$protocols` map for a provider publishing one list per protocol), an
+optional `$protocol`, the format-specific knobs of its scraper base (see each
+`Scrapers/*` class docblock), and a `SCHEDULE`. Unlike a custom source, a bundled one is
+registered in `LoadProxies::$scrapers` so it runs under `all()`/`scheduled()`.
 
 ## Proxy validation
 This library can also be used for proxy capability validation:

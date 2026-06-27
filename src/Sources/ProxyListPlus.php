@@ -6,7 +6,7 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TableListScraper;
 
-final class ProxyListPlusHttp extends TableListScraper
+final class ProxyListPlus extends TableListScraper
 {
     protected string $url = 'https://list.proxylistplus.com/Fresh-HTTP-Proxy-List-1';
 

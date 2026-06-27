@@ -80,6 +80,7 @@ class MethodsValidation implements JsonSerializable, ValidationInterface
      */
     public function run(): self
     {
+        $this->methods = [];
         $latencySum = 0.0;
         $latencyCount = 0;
 

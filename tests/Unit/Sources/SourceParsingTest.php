@@ -8,6 +8,7 @@ use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Tests\Support\Registry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
  * Provider-level parsing tests: each Source is fed a recorded fixture through
@@ -33,29 +34,41 @@ class SourceParsingTest extends TestCase
     public static function textListSourceProvider(): array
     {
         return [
-            'aliilapro http'    => [Sources\AliilaproProxyListHttp::class, 'http'],
-            'aliilapro socks4'  => [Sources\AliilaproProxyListSocks4::class, 'socks4'],
-            'aliilapro socks5'  => [Sources\AliilaproProxyListSocks5::class, 'socks5'],
-            'clarketm'          => [Sources\ClarketmProxyList::class, 'http'],
-            'hookzof socks5'    => [Sources\HookzofSocks5List::class, 'socks5'],
-            'monosans http'     => [Sources\MonosansProxyListHttp::class, 'http'],
-            'proxyscrape http'  => [Sources\ProxyScrapeComHttp::class, 'http'],
-            'proxyscrape socks4' => [Sources\ProxyScrapeComSocks4::class, 'socks4'],
-            'proxyscrape socks5' => [Sources\ProxyScrapeComSocks5::class, 'socks5'],
-            'roosterkid https'  => [Sources\RoosterkidOpenProxyListHttps::class, 'https'],
-            'roosterkid socks4' => [Sources\RoosterkidOpenProxyListSocks4::class, 'socks4'],
-            'roosterkid socks5' => [Sources\RoosterkidOpenProxyListSocks5::class, 'socks5'],
-            'shifty http'       => [Sources\ShiftyTRProxyListHttp::class, 'http'],
-            'shifty https'      => [Sources\ShiftyTRProxyListHttps::class, 'https'],
-            'shifty socks4'     => [Sources\ShiftyTRProxyListSocks4::class, 'socks4'],
-            'shifty socks5'     => [Sources\ShiftyTRProxyListSocks5::class, 'socks5'],
-            'thespeedx http'    => [Sources\TheSpeedXProxyListHttp::class, 'http'],
-            'thespeedx socks4'  => [Sources\TheSpeedXProxyListSocks4::class, 'socks4'],
-            'thespeedx socks5'  => [Sources\TheSpeedXProxyListSocks5::class, 'socks5'],
-            'vakhov http'       => [Sources\VakhovFreshProxyListHttp::class, 'http'],
-            'vakhov https'      => [Sources\VakhovFreshProxyListHttps::class, 'https'],
-            'vakhov socks4'     => [Sources\VakhovFreshProxyListSocks4::class, 'socks4'],
-            'vakhov socks5'     => [Sources\VakhovFreshProxyListSocks5::class, 'socks5'],
+            'clarketm'       => [Sources\Clarketm::class, 'http'],
+            'hookzof socks5' => [Sources\Hookzof::class, 'socks5'],
+            'monosans http'  => [Sources\Monosans::class, 'http'],
+        ];
+    }
+
+    /**
+     * @param string[] $protocols
+     */
+    #[DataProvider('multiProtocolSourceProvider')]
+    public function testMultiProtocolSources(string $class, array $protocols): void
+    {
+        // One list per protocol; the same fixture body is served for every URL
+        // (a fresh MockResponse per request, since each is consumed once).
+        $body = MockClientFactory::load('Sources/text-list.txt');
+        $client = MockClientFactory::router(fn (): MockResponse => new MockResponse($body));
+
+        $scraper = new $class($client);
+        $proxies = iterator_to_array($scraper->get(), false);
+
+        // text-list.txt has 3 valid lines, fetched once per protocol.
+        $this->assertCount(3 * count($protocols), $proxies);
+        $seen = array_values(array_unique(array_map(static fn ($p): string => $p->protocol->value, $proxies)));
+        $this->assertSame($protocols, $seen);
+    }
+
+    public static function multiProtocolSourceProvider(): array
+    {
+        return [
+            'aliilapro'   => [Sources\Aliilapro::class, ['http', 'socks4', 'socks5']],
+            'proxyscrape' => [Sources\ProxyScrapeCom::class, ['http', 'socks4', 'socks5']],
+            'roosterkid'  => [Sources\Roosterkid::class, ['https', 'socks4', 'socks5']],
+            'shiftytr'    => [Sources\ShiftyTR::class, ['http', 'https', 'socks4', 'socks5']],
+            'thespeedx'   => [Sources\TheSpeedX::class, ['http', 'socks4', 'socks5']],
+            'vakhov'      => [Sources\Vakhov::class, ['http', 'https', 'socks4', 'socks5']],
         ];
     }
 
@@ -107,7 +120,7 @@ class SourceParsingTest extends TestCase
     public function testPrefixedListSourcePreservesPerLineProtocol(): void
     {
         // Lines already carry the scheme; the protocol is read per line, not prepended.
-        $scraper = new Sources\ProxiflyProxyList(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
+        $scraper = new Sources\Proxifly(MockClientFactory::fromFixture('Sources/prefixed-list.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -120,7 +133,7 @@ class SourceParsingTest extends TestCase
 
     public function testGeonodeJsonListYieldsOneProxyPerProtocol(): void
     {
-        $scraper = new Sources\GeonodeProxyList(MockClientFactory::fromFixture('Sources/geonode.json'));
+        $scraper = new Sources\Geonode(MockClientFactory::fromFixture('Sources/geonode.json'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -133,7 +146,7 @@ class SourceParsingTest extends TestCase
 
     public function testSpysMeWhitespaceListSkipsBanner(): void
     {
-        $scraper = new Sources\SpysMeProxyList(MockClientFactory::fromFixture('Sources/spys-me.txt'));
+        $scraper = new Sources\SpysMe(MockClientFactory::fromFixture('Sources/spys-me.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -141,9 +154,9 @@ class SourceParsingTest extends TestCase
         $this->assertSame(['http://1.2.3.4:8080', 'http://5.6.7.8:3128'], $proxies);
     }
 
-    public function testProxyListPlusHttpTable(): void
+    public function testProxyListPlusTable(): void
     {
-        $scraper = new Sources\ProxyListPlusHttp(MockClientFactory::fromFixture('Sources/proxylistplus.html'));
+        $scraper = new Sources\ProxyListPlus(MockClientFactory::fromFixture('Sources/proxylistplus.html'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 
@@ -173,7 +186,7 @@ class SourceParsingTest extends TestCase
 
     public function testMmpx12SkipsCorruptPrefixedLine(): void
     {
-        $scraper = new Sources\Mmpx12ProxyList(MockClientFactory::fromFixture('Sources/mmpx12.txt'));
+        $scraper = new Sources\Mmpx12(MockClientFactory::fromFixture('Sources/mmpx12.txt'));
 
         $proxies = array_map('strval', iterator_to_array($scraper->get(), false));
 

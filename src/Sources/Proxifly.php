@@ -6,7 +6,7 @@ namespace IlmLV\ProxyScraper\Sources;
 
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 
-final class ProxiflyProxyList extends TextListScraper
+final class Proxifly extends TextListScraper
 {
     protected string $url = 'https://cdn.jsdelivr.net/gh/proxifly/free-proxy-list@main/proxies/all/data.txt';
 
