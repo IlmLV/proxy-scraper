@@ -20,13 +20,49 @@ abstract class TextListScraper extends ProxyScraper
     protected ?string $protocol = null;
 
     /**
+     * Protocol => URL map for providers that publish one list per protocol on the
+     * same site/schedule. When non-empty it takes precedence over $url/$protocol:
+     * get() fetches each URL and prepends its key as the scheme. A single dead
+     * endpoint is skipped rather than aborting the whole source, matching the
+     * "a failing source never aborts the batch" guarantee. Leave empty (the
+     * default) for the single-URL case.
+     *
+     * @var array<string, string>
+     */
+    protected array $protocols = [];
+
+    /**
      * @return Generator<int, Proxy>
      * @throws ScraperException
      */
     public function get(): Generator
     {
-        $text = $this->fetch();
+        if ($this->protocols === []) {
+            yield from $this->parse($this->fetch(), $this->protocol);
 
+            return;
+        }
+
+        foreach ($this->protocols as $protocol => $url) {
+            try {
+                $text = $this->fetchUrl($this->appendOptions($url));
+            } catch (ScraperException $e) {
+                continue;
+            }
+
+            yield from $this->parse($text, $protocol);
+        }
+    }
+
+    /**
+     * Parse a fetched list body into proxies, prepending $protocol to each bare
+     * "ip:port" line (or reading the scheme per line when $protocol is null).
+     * Lines that fail to parse are skipped.
+     *
+     * @return Generator<int, Proxy>
+     */
+    private function parse(string $text, ?string $protocol): Generator
+    {
         foreach (explode("\n", $text) as $line) {
             $line = trim($line);
             if ($line === '') {
@@ -34,7 +70,7 @@ abstract class TextListScraper extends ProxyScraper
             }
 
             try {
-                $proxy = Proxy::fromString($this->protocol === null ? $line : $this->protocol . '://' . $line);
+                $proxy = Proxy::fromString($protocol === null ? $line : $protocol . '://' . $line);
             } catch (InvalidArgumentException $e) {
                 continue;
             }

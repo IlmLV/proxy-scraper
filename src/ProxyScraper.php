@@ -95,10 +95,19 @@ abstract class ProxyScraper implements ScraperInterface
     {
         $url = $values === [] ? $this->url : sprintf($this->url, ...$values);
 
+        return $this->appendOptions($url);
+    }
+
+    /**
+     * Append the configured scraper options to an already-built URL as a query
+     * string. Several sources already carry a query string (e.g. pubproxy.com's
+     * "?limit=5&format=json"); append with "&" in that case so configured options
+     * don't produce a second, URL-breaking "?". Used both by getUrl() and by
+     * multi-URL sources that build each endpoint themselves.
+     */
+    protected function appendOptions(string $url): string
+    {
         if ($this->options) {
-            // Several sources already carry a query string (e.g. pubproxy.com's
-            // "?limit=5&format=json"); append with "&" in that case so configured
-            // options don't produce a second, URL-breaking "?".
             $url .= (str_contains($url, '?') ? '&' : '?') . http_build_query($this->options);
         }
 
