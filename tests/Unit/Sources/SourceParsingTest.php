@@ -8,6 +8,7 @@ use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use IlmLV\ProxyScraper\Tests\Support\Registry;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use Symfony\Component\HttpClient\Response\MockResponse;
 
 /**
  * Provider-level parsing tests: each Source is fed a recorded fixture through
@@ -33,29 +34,41 @@ class SourceParsingTest extends TestCase
     public static function textListSourceProvider(): array
     {
         return [
-            'aliilapro http'    => [Sources\AliilaproProxyListHttp::class, 'http'],
-            'aliilapro socks4'  => [Sources\AliilaproProxyListSocks4::class, 'socks4'],
-            'aliilapro socks5'  => [Sources\AliilaproProxyListSocks5::class, 'socks5'],
-            'clarketm'          => [Sources\ClarketmProxyList::class, 'http'],
-            'hookzof socks5'    => [Sources\HookzofSocks5List::class, 'socks5'],
-            'monosans http'     => [Sources\MonosansProxyListHttp::class, 'http'],
-            'proxyscrape http'  => [Sources\ProxyScrapeComHttp::class, 'http'],
-            'proxyscrape socks4' => [Sources\ProxyScrapeComSocks4::class, 'socks4'],
-            'proxyscrape socks5' => [Sources\ProxyScrapeComSocks5::class, 'socks5'],
-            'roosterkid https'  => [Sources\RoosterkidOpenProxyListHttps::class, 'https'],
-            'roosterkid socks4' => [Sources\RoosterkidOpenProxyListSocks4::class, 'socks4'],
-            'roosterkid socks5' => [Sources\RoosterkidOpenProxyListSocks5::class, 'socks5'],
-            'shifty http'       => [Sources\ShiftyTRProxyListHttp::class, 'http'],
-            'shifty https'      => [Sources\ShiftyTRProxyListHttps::class, 'https'],
-            'shifty socks4'     => [Sources\ShiftyTRProxyListSocks4::class, 'socks4'],
-            'shifty socks5'     => [Sources\ShiftyTRProxyListSocks5::class, 'socks5'],
-            'thespeedx http'    => [Sources\TheSpeedXProxyListHttp::class, 'http'],
-            'thespeedx socks4'  => [Sources\TheSpeedXProxyListSocks4::class, 'socks4'],
-            'thespeedx socks5'  => [Sources\TheSpeedXProxyListSocks5::class, 'socks5'],
-            'vakhov http'       => [Sources\VakhovFreshProxyListHttp::class, 'http'],
-            'vakhov https'      => [Sources\VakhovFreshProxyListHttps::class, 'https'],
-            'vakhov socks4'     => [Sources\VakhovFreshProxyListSocks4::class, 'socks4'],
-            'vakhov socks5'     => [Sources\VakhovFreshProxyListSocks5::class, 'socks5'],
+            'clarketm'       => [Sources\ClarketmProxyList::class, 'http'],
+            'hookzof socks5' => [Sources\HookzofSocks5List::class, 'socks5'],
+            'monosans http'  => [Sources\MonosansProxyListHttp::class, 'http'],
+        ];
+    }
+
+    /**
+     * @param string[] $protocols
+     */
+    #[DataProvider('multiProtocolSourceProvider')]
+    public function testMultiProtocolSources(string $class, array $protocols): void
+    {
+        // One list per protocol; the same fixture body is served for every URL
+        // (a fresh MockResponse per request, since each is consumed once).
+        $body = MockClientFactory::load('Sources/text-list.txt');
+        $client = MockClientFactory::router(fn (): MockResponse => new MockResponse($body));
+
+        $scraper = new $class($client);
+        $proxies = iterator_to_array($scraper->get(), false);
+
+        // text-list.txt has 3 valid lines, fetched once per protocol.
+        $this->assertCount(3 * count($protocols), $proxies);
+        $seen = array_values(array_unique(array_map(static fn ($p): string => $p->protocol->value, $proxies)));
+        $this->assertSame($protocols, $seen);
+    }
+
+    public static function multiProtocolSourceProvider(): array
+    {
+        return [
+            'aliilapro'   => [Sources\Aliilapro::class, ['http', 'socks4', 'socks5']],
+            'proxyscrape' => [Sources\ProxyScrapeCom::class, ['http', 'socks4', 'socks5']],
+            'roosterkid'  => [Sources\Roosterkid::class, ['https', 'socks4', 'socks5']],
+            'shiftytr'    => [Sources\ShiftyTR::class, ['http', 'https', 'socks4', 'socks5']],
+            'thespeedx'   => [Sources\TheSpeedX::class, ['http', 'socks4', 'socks5']],
+            'vakhov'      => [Sources\Vakhov::class, ['http', 'https', 'socks4', 'socks5']],
         ];
     }
 

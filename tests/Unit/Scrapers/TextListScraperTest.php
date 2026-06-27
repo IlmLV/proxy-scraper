@@ -5,8 +5,8 @@ namespace IlmLV\ProxyScraper\Tests\Unit\Scrapers;
 use IlmLV\ProxyScraper\Exceptions\ScraperException;
 use IlmLV\ProxyScraper\Scrapers\TextListScraper;
 use IlmLV\ProxyScraper\Sources\ClarketmProxyList;
+use IlmLV\ProxyScraper\Sources\HookzofSocks5List;
 use IlmLV\ProxyScraper\Sources\ProxiflyProxyList;
-use IlmLV\ProxyScraper\Sources\ShiftyTRProxyListSocks5;
 use IlmLV\ProxyScraper\Tests\Support\MockClientFactory;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpClient\MockHttpClient;
@@ -45,7 +45,7 @@ class TextListScraperTest extends TestCase
 
     public function testAppliesConfiguredProtocol(): void
     {
-        $scraper = new ShiftyTRProxyListSocks5(MockClientFactory::fromFixture('Sources/text-list.txt'));
+        $scraper = new HookzofSocks5List(MockClientFactory::fromFixture('Sources/text-list.txt'));
 
         $proxies = iterator_to_array($scraper->get(), false);
 
