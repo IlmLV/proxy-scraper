@@ -32,6 +32,19 @@ abstract class ProxyScraper implements ScraperInterface
     protected string $url;
 
     /**
+     * Optional `protocol => URL` map for sources that publish one list/endpoint
+     * per protocol on the same provider. When set, the format scrapers (text /
+     * table / JSON, via {@see Scrapers\MultiProtocolFetch}) fetch each URL with the
+     * configured options applied and parse its body with that protocol forced,
+     * skipping a dead endpoint rather than aborting the source. When empty (the
+     * default) the single $url is used. Available on every scraper; a custom get()
+     * that does not consult it simply leaves it unused.
+     *
+     * @var array<string, string>
+     */
+    protected array $protocols = [];
+
+    /**
      * @var array<string, mixed>
      */
     protected array $options;

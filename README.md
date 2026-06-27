@@ -212,6 +212,11 @@ Currently supported source data types:
 - [Table list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TableListScraper.php)
 - [Plain Text list scraper](https://github.com/IlmLV/proxy-scraper/blob/master/src/Scrapers/TextListScraper.php)
 
+Each of these accepts a `$protocols` map (`['http' => $urlA, 'socks5' => $urlB, …]`)
+when a provider publishes one endpoint per protocol: every URL is fetched and parsed
+with its key as the forced protocol, and a dead endpoint is skipped rather than aborting
+the source. Leave it empty to use the single `$url`.
+
 ### Define a custom source
 
 Extend one of the scraper base types (each already implements `ScraperInterface`

@@ -74,7 +74,7 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
   (domain or GitHub owner/repo), dropping protocol suffixes and the
   `ProxyList`/`OpenProxyList`/`FreshProxyList` filler. The six multi-protocol families
   collapse to one class each that emits all their protocols (via the new
-  `TextListScraper::$protocols` map):
+  `ProxyScraper::$protocols` map):
   `AliilaproProxyList{Http,Socks4,Socks5}` → `Aliilapro`;
   `ShiftyTRProxyList{Http,Https,Socks4,Socks5}` → `ShiftyTR`;
   `VakhovFreshProxyList{Http,Https,Socks4,Socks5}` → `Vakhov`;
@@ -116,10 +116,14 @@ While the package is pre-1.0 (`0.x`), any release may contain breaking changes.
 - `Port::$value` (`int`) exposes the underlying value directly, complementing
   `__toString()` and matching `Host`'s public surface. (`Protocol`'s value is its enum
   backing value, `Protocol::Http->value` — see the breaking-API note above.)
-- `TextListScraper::$protocols` — a `protocol => URL` map letting one source publish
-  several per-protocol lists from the same provider. Each URL is fetched and its key
-  prepended as the scheme; a single dead endpoint is skipped rather than aborting the
-  source. Backs the consolidated multi-protocol sources (see the breaking-API note).
+- `ProxyScraper::$protocols` — a `protocol => URL` map, available on **every** scraper
+  and honoured by all four format bases (text / table / JSON list / JSON object, via the
+  new `Scrapers\MultiProtocolFetch` trait), letting one source publish several
+  per-protocol endpoints from the same provider. Each URL is fetched with the configured
+  options applied and its body parsed with that protocol forced (overriding the
+  per-row/per-field protocol); a single dead endpoint is skipped rather than aborting the
+  source. Backs the consolidated multi-protocol text sources (see the breaking-API note);
+  the table/JSON bases accept it too even though no bundled source uses it yet.
 - `IpVersionValidation` now implements `JsonSerializable`, emitting an explicit
   `{"ipv4": ..., "ipv6": ...}` shape like the other aggregators.
 

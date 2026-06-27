@@ -17,36 +17,37 @@ use IlmLV\ProxyScraper\ProxyScraper;
  * an array of proxies use {@see JsonListScraper} instead.
  *
  * No bundled source currently extends this — it is a supported extension point.
- * Because exactly one proxy is expected, a malformed payload throws rather than
- * being skipped (there is nothing else in the response to fall back to).
+ * Because exactly one proxy is expected per response, a malformed payload throws
+ * rather than being skipped (there is nothing else in the response to fall back
+ * to). With a {@see ProxyScraper::$protocols} map it yields one proxy per URL, the
+ * map key forcing that proxy's protocol.
  */
 abstract class JsonScraper extends ProxyScraper
 {
     use JsonFieldMapping;
+    use MultiProtocolFetch;
 
     /**
      * @return Generator<int, Proxy>
      * @throws InvalidArgumentException
      * @throws ScraperException
      */
-    public function get(): Generator
+    protected function parse(string $body, ?string $protocol): Generator
     {
-        $response = $this->fetch();
-
-        yield $this->extractProxy($response);
+        yield $this->extractProxy($body, $protocol);
     }
 
     /**
      * @throws InvalidArgumentException
      * @throws ScraperException
      */
-    private function extractProxy(string $response): Proxy
+    private function extractProxy(string $response, ?string $protocol): Proxy
     {
         $json = json_decode($response, true);
 
         $host = Arr::get($json, $this->hostProperty);
         $port = Arr::get($json, $this->portProperty);
-        $protocol = Arr::get($json, $this->protocolProperty);
+        $protocol ??= Arr::get($json, $this->protocolProperty);
 
         if (!is_scalar($host) || !is_scalar($port) || !is_scalar($protocol)) {
             throw new ScraperException('Failed to extract, response (' . $response . ')');

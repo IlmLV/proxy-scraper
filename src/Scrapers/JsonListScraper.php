@@ -17,11 +17,14 @@ use IlmLV\ProxyScraper\ProxyScraper;
  * Config a source may override:
  * - $listPath             key under which the array lives in the response; null
  *                         when the response body is itself the array.
- * - JSON field names      via {@see JsonFieldMapping} ($hostProperty etc.).
+ * - JSON field names      via {@see JsonFieldMapping} ($hostProperty etc.). A
+ *                         {@see ProxyScraper::$protocols} map key overrides the
+ *                         per-item protocol field for that fetched list.
  */
 abstract class JsonListScraper extends ProxyScraper
 {
     use JsonFieldMapping;
+    use MultiProtocolFetch;
 
     protected ?string $listPath = null;
 
@@ -29,24 +32,22 @@ abstract class JsonListScraper extends ProxyScraper
      * @return Generator<int, Proxy>
      * @throws ScraperException
      */
-    public function get(): Generator
+    protected function parse(string $body, ?string $protocol): Generator
     {
-        $response = $this->fetch();
-
-        $json = json_decode($response, true);
+        $json = json_decode($body, true);
         $list = $this->listPath !== null
             ? Arr::get($json, $this->listPath)
             : $json;
 
         if (!is_array($list)) {
-            throw new ScraperException('Failed to extract proxy list, response (' . $response . ')');
+            throw new ScraperException('Failed to extract proxy list, response (' . $body . ')');
         }
 
         foreach ($list as $item) {
             if (!is_array($item)) {
                 continue;
             }
-            $proxy = $this->extractProxy($item);
+            $proxy = $this->extractProxy($item, $protocol);
             if ($proxy !== null) {
                 yield $proxy;
             }
@@ -56,15 +57,16 @@ abstract class JsonListScraper extends ProxyScraper
     /**
      * Build a Proxy from one list item, or null when the item is malformed.
      * A single bad entry is skipped rather than aborting the whole source,
-     * consistent with the text/table scrapers and Geonode.
+     * consistent with the text/table scrapers and Geonode. A forced $protocol
+     * (a $protocols map key) overrides the item's protocol field.
      *
      * @param array<array-key, mixed> $item
      */
-    private function extractProxy(array $item): ?Proxy
+    private function extractProxy(array $item, ?string $protocol): ?Proxy
     {
         $host = $item[$this->hostProperty] ?? null;
         $port = $item[$this->portProperty] ?? null;
-        $protocol = $item[$this->protocolProperty] ?? null;
+        $protocol ??= $item[$this->protocolProperty] ?? null;
 
         if (!is_scalar($host) || !is_scalar($port) || !is_scalar($protocol)) {
             return null;
