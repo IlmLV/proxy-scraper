@@ -66,6 +66,18 @@ class DomainsValidationTest extends TestCase
         $this->assertTrue($decoded['example.com']['valid']);
     }
 
+    public function testReRunWithDifferentValidatorsDropsStaleResults(): void
+    {
+        $validation = DomainsValidation::make(self::expectedPagesClient())->setValidators([ExampleCom::class])->run();
+        $this->assertTrue(isset($validation->{'example.com'}));
+
+        // Re-running with no validators must clear the prior result map, not retain it.
+        $validation->setValidators([])->run();
+
+        $this->assertFalse(isset($validation->{'example.com'}), 're-run must not retain validators from a prior run');
+        $this->assertSame([], $validation->jsonSerialize());
+    }
+
     private static function expectedPagesClient(): MockHttpClient
     {
         return MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {

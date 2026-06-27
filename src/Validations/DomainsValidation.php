@@ -50,6 +50,8 @@ class DomainsValidation implements \JsonSerializable, ValidationInterface
 
     public function run(): self
     {
+        $this->validators = [];
+
         foreach ($this->validatorClasses as $validatorClass) {
             $validator = $validatorClass::make($this->client)->run();
             $this->validators[$validator::NAME] = $validator;

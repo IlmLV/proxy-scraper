@@ -49,4 +49,24 @@ class MethodsValidationTest extends TestCase
         $json = json_decode(json_encode($validation), true);
         $this->assertSame(['latency', 'get'], array_keys($json));
     }
+
+    public function testReRunWithNarrowerSetDropsStaleResults(): void
+    {
+        $client = MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
+            if ($method === 'HEAD') {
+                return new MockResponse('', ['http_code' => 200]);
+            }
+            return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
+        });
+
+        $validation = MethodsValidation::make('http://whoami.serviss.it/?format=json', $client)->run();
+        $this->assertTrue(isset($validation->post), 'first run probes every method');
+
+        // Re-running with a narrower set must replace the result map, not merge with it.
+        $validation->setRequestMethods(['GET'])->run();
+
+        $this->assertTrue(isset($validation->get));
+        $this->assertFalse(isset($validation->post), 're-run must not retain methods from a prior run');
+        $this->assertSame(['latency', 'get'], array_keys(json_decode(json_encode($validation), true)));
+    }
 }

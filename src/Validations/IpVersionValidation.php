@@ -20,8 +20,8 @@ class IpVersionValidation implements ValidationInterface
     public const IPV4_URL = ValidationEndpoints::IPV4;
     public const IPV6_URL = ValidationEndpoints::IPV6;
 
-    public EgressValidation $ipv4;
-    public EgressValidation $ipv6;
+    public ?EgressValidation $ipv4 = null;
+    public ?EgressValidation $ipv6 = null;
 
     private ?HttpClientInterface $client;
     private string $ipv4Url = self::IPV4_URL;
