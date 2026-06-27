@@ -83,11 +83,11 @@ abstract class ProxyScraper implements ScraperInterface
     private function processOptions(array $options): array
     {
         // cast all booleans as string
-        return array_map(function ($a) {
-            if (is_bool($a)) {
-                return $a === true ? 'true' : 'false';
+        return array_map(function ($value) {
+            if (is_bool($value)) {
+                return $value === true ? 'true' : 'false';
             }
-            return $a;
+            return $value;
         }, $options);
     }
 

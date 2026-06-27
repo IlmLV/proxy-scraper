@@ -23,6 +23,10 @@ enum Protocol: string
     public static function fromString(string $protocol): self
     {
         return self::tryFrom($protocol)
-            ?? throw new InvalidArgumentException('Unknown protocol: ' . $protocol);
+            ?? throw new InvalidArgumentException(sprintf(
+                'Unknown protocol "%s"; expected one of: %s',
+                $protocol,
+                implode(', ', array_column(self::cases(), 'value')),
+            ));
     }
 }
