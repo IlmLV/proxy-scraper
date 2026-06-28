@@ -35,6 +35,7 @@ class ProxyValidation implements ValidationInterface
     public ?MethodsValidation $http = null;
     public ?MethodsValidation $httpTunnel = null;
     public ?MethodsValidation $https = null;
+    public ?MethodsValidation $httpsInsecure = null;
     public ?DomainsValidation $domains = null;
     public ?IpVersionValidation $ipVersion = null;
 
@@ -47,10 +48,12 @@ class ProxyValidation implements ValidationInterface
     {
         $this->proxy = is_string($proxy) ? Proxy::fromString($proxy) : $proxy;
 
+        // TLS verification is on by default; the two HTTPS probes in run() set it
+        // explicitly per request, so this only governs the opt-in domain checks.
         $this->client = $client ?? HttpClient::create([
             'timeout' => 10,
-            'verify_peer' => false,
-            'verify_host' => false,
+            'verify_peer' => true,
+            'verify_host' => true,
             'headers' => [
                 'Accept-Language' => 'en-US,en;q=0.5',
                 'User-Agent' => RandomUserAgent::random(),
@@ -97,7 +100,19 @@ class ProxyValidation implements ValidationInterface
             // tunnel for a SOCKS proxy. ($https is the CONNECT-to-:443 check —
             // transport-driven by the URL scheme.)
             $this->http = MethodsValidation::make($this->httpUrl, $this->client)->run();
-            $this->https = MethodsValidation::make($this->httpsUrl, $this->client)->run();
+
+            // Each HTTPS probe sets TLS verification explicitly, independent of the
+            // injected client. $https verifies the certificate (peer chain +
+            // hostname); when it fails every method (latency === null) $httpsInsecure
+            // retries without verification — a pass means TLS tunnels behind an
+            // untrusted cert.
+            $strictClient = $this->client->withOptions(['verify_peer' => true, 'verify_host' => true]);
+            $this->https = MethodsValidation::make($this->httpsUrl, $strictClient)->run();
+
+            if ($this->https->latency === null) {
+                $insecureClient = $this->client->withOptions(['verify_peer' => false, 'verify_host' => false]);
+                $this->httpsInsecure = MethodsValidation::make($this->httpsUrl, $insecureClient)->run();
+            }
 
             // Separate CONNECT-tunnel-to-:80 capability — how a chained proxy /
             // forward-proxy gateway reaches the exit. Only HTTP proxies need this

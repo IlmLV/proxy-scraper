@@ -267,7 +267,7 @@ This library can also be used for proxy capability validation:
   - exposed (has origin IP exposure)
 - if proxy ***server IP*** matches server by whom request is performed
 - ***HTTP*** support — **forward** proxying (`http`) and a separate **CONNECT-tunnel to :80** check (`httpTunnel`; how chained proxies / forward-proxy gateways reach an exit — run for HTTP proxies only, since SOCKS always tunnel)
-- ***HTTPS*** request support (CONNECT tunnel to :443)
+- ***HTTPS*** request support (CONNECT tunnel to :443) — `https` requires a **valid certificate** (peer chain + hostname). On failure, `httpsInsecure` retries with verification disabled; a pass there means the proxy tunnels TLS behind an untrusted certificate
 - various ***request methods***: GET, POST, PUT, OPTIONS, HEAD, DELETE, PATCH
 - huge amount of ***request headers*** if they are not modified by proxy - tested in each request method
 - optional ***domain*** reachability checks — opt-in, none run by default; ships with `example.com` as a reference you extend (see [Custom domain validators](#custom-domain-validators))
@@ -299,7 +299,8 @@ dump($validation);
 | `ip` | `?IpValidation` | Whether the egress IP matches the proxy host, plus its country / organisation. |
 | `http` | `?MethodsValidation` | **Forward** HTTP support (absolute-form requests). For a SOCKS proxy this is its tunnel — SOCKS has no forward mode. |
 | `httpTunnel` | `?MethodsValidation` | **CONNECT-tunnel-to-:80** support — how a chained proxy / forward-proxy gateway reaches the exit. Run for HTTP proxies only (SOCKS are already covered by `http`); `null` otherwise. |
-| `https` | `?MethodsValidation` | HTTPS support (CONNECT tunnel to :443). |
+| `https` | `?MethodsValidation` | HTTPS support with **certificate verification** (CONNECT tunnel to :443). Fails on an expired, self-signed, hostname-mismatched, or intercepted cert. |
+| `httpsInsecure` | `?MethodsValidation` | The same probe with verification **disabled**, run only when `https` fails. Passing means the proxy tunnels TLS behind an untrusted cert; `null` when `https` passed. |
 | `domains` | `?DomainsValidation` | Opt-in per-domain reachability (see below). |
 | `ipVersion` | `?IpVersionValidation` | IPv4 / IPv6 egress capability. |
 | `validatedAt` | `DateTimeInterface` | When the run executed. |
@@ -525,6 +526,7 @@ line}` object when it failed (`line` is an integer):
       "headers": {...}
     }
   },
+  "httpsInsecure": null,
   "domains": {
     "example.com": {
       "valid": true,

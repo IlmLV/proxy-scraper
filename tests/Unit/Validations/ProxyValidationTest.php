@@ -48,6 +48,62 @@ class ProxyValidationTest extends TestCase
         $this->assertInstanceOf(\DateTimeInterface::class, $validation->validatedAt);
     }
 
+    public function testHttpsStrictFailsThenInsecureProbeRuns(): void
+    {
+        // The proxy tunnels TLS, but the certificate fails verification (expired,
+        // self-signed, or intercepted). The strict $https check (verify_peer =>
+        // true) must fail every method, and that failure must trigger the insecure
+        // fallback (verify_peer => false), which then succeeds.
+        $client = MockClientFactory::router(function (string $method, string $url, array $options): MockResponse {
+            if (str_starts_with($url, 'https://')) {
+                if (($options['verify_peer'] ?? false) === true) {
+                    // A transport-level cert rejection, as a real client would see.
+                    return new MockResponse('', ['error' => 'SSL certificate problem: self-signed certificate']);
+                }
+                if ($method === 'HEAD') {
+                    return new MockResponse('', ['http_code' => 200]);
+                }
+                return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
+            }
+            if (str_contains($url, 'whoami')) {
+                if (($options['proxy'] ?? null) === false) {
+                    return new MockResponse(MockClientFactory::load('Validations/realip.json'));
+                }
+                if ($method === 'HEAD') {
+                    return new MockResponse('', ['http_code' => 200]);
+                }
+                return new MockResponse(json_encode(['method' => $method]), ['http_code' => 200]);
+            }
+            if (str_contains($url, 'ipv4.serviss.it') || str_contains($url, 'ipv6.serviss.it')) {
+                return new MockResponse(json_encode(['ip' => '1.2.3.4']), ['http_code' => 200]);
+            }
+            if (str_contains($url, 'ip.serviss.it')) {
+                return new MockResponse(MockClientFactory::load('Validations/ip-match.json'));
+            }
+            return new MockResponse('{}', ['http_code' => 200]);
+        });
+
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', $client)->run();
+
+        $this->assertInstanceOf(MethodsValidation::class, $validation->https);
+        $this->assertFalse($validation->https->get->valid, 'strict HTTPS must fail on an unverifiable certificate');
+        $this->assertNull($validation->https->latency, 'no method should pass the strict check');
+
+        $this->assertInstanceOf(MethodsValidation::class, $validation->httpsInsecure);
+        $this->assertTrue($validation->httpsInsecure->get->valid, 'insecure HTTPS probe should succeed when verification is off');
+    }
+
+    public function testHttpsStrictPassesSkipsInsecureProbe(): void
+    {
+        // When the certificate verifies (happy path succeeds regardless of the
+        // verify flag), the insecure fallback must not run — httpsInsecure stays null.
+        $validation = ProxyValidation::make('http://1.2.3.4:8080', self::happyPathClient())->run();
+
+        $this->assertInstanceOf(MethodsValidation::class, $validation->https);
+        $this->assertTrue($validation->https->get->valid);
+        $this->assertNull($validation->httpsInsecure, 'insecure probe must not run when strict HTTPS already passed');
+    }
+
     public function testHttpProxyTunnelCheckForcesConnectWhileHttpStaysForward(): void
     {
         if (!defined('CURLOPT_HTTPPROXYTUNNEL')) {
@@ -154,6 +210,7 @@ class ProxyValidationTest extends TestCase
         $this->assertNull($validation->http);
         $this->assertNull($validation->httpTunnel);
         $this->assertNull($validation->https);
+        $this->assertNull($validation->httpsInsecure);
         $this->assertNull($validation->domains);
         $this->assertNull($validation->ipVersion);
     }
